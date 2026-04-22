@@ -21,8 +21,9 @@ export const userService = {
    * Get user profile by ID
    * @param userId - ID of the user
    */
-  getUser: (userId: string): Promise<User> => {
-    return api.get<User>(`/users/${userId}`);
+  getUser: async (userId: string): Promise<User> => {
+    const response = await api.get<User>(`/users/${userId}`);
+    return response.data;
   },
 
   /**
@@ -30,14 +31,16 @@ export const userService = {
    * @param userId - ID of the user
    * @param updates - Partial user data to update
    */
-  updateUser: (userId: string, updates: UserUpdateData): Promise<User> => {
-    return api.put<User>(`/users/${userId}`, updates);
+  updateUser: async (userId: string, updates: UserUpdateData): Promise<User> => {
+    const response = await api.put<User>(`/users/${userId}`, updates);
+    return response.data;
   },
 
   /**
    * Get suggested connections for the current user
    */
-  getSuggestedConnections: (): Promise<User[]> => {
-    return api.get<User[]>('/users/suggested');
+  getSuggestedConnections: async (): Promise<User[]> => {
+    const response = await api.get<User[]>('/users/suggested');
+    return response.data;
   },
 };

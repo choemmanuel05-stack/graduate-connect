@@ -34,7 +34,7 @@ services:
     name: graduate-connect-frontend
     plan: free
     runtime: node
-    buildCommand: "npm install && npm run build"
+    buildCommand: "npm install && npx vite build"
     startCommand: "npx serve -s dist -l $PORT"
     rootDir: linkedin-react-frontend
     envVars:

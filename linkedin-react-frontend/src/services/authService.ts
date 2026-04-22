@@ -14,11 +14,15 @@ export interface AuthResponse {
 }
 
 export const authService = {
-  register: (data: RegisterData): Promise<AuthResponse> =>
-    api.post('/auth/register/', data),
+  register: async (data: RegisterData): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/register/', data);
+    return response.data;
+  },
 
-  login: (email: string, password: string): Promise<AuthResponse> =>
-    api.post('/auth/login/', { email, password }),
+  login: async (email: string, password: string): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/login/', { email, password });
+    return response.data;
+  },
 
   getMe: () => api.get('/auth/me/'),
 };
