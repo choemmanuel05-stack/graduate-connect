@@ -1,7 +1,6 @@
 databases:
   - name: graduate-connect-db
     databaseName: graduate_connect
-    user: postgres
     plan: free
 
 services:
