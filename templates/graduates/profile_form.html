@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h4><i class="bi bi-person-circle me-2"></i>My Graduate Profile</h4>
+    <div class="subtitle">Complete your profile to improve your match score with employers</div>
+  </div>
+  <div style="display:flex;gap:.5rem;">
+    <a href="/graduates/credentials/upload/" class="btn-outline">
+      <i class="bi bi-file-earmark-plus"></i> Upload Credential
+    </a>
+    <a href="/jobs/" class="btn-primary">
+      <i class="bi bi-briefcase"></i> Browse Jobs
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="gc-card">
+      <div class="gc-card-header"><i class="bi bi-pencil-square"></i> Profile Information</div>
+      <div class="gc-card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Degree Type</label>
+              {{ form.degree_type }}
+              {% if form.degree_type.errors %}<div class="invalid-feedback d-block">{{ form.degree_type.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">GPA <span style="color:#9ca3af;font-weight:400">(0.0 – 4.0)</span></label>
+              {{ form.gpa }}
+              {% if form.gpa.errors %}<div class="invalid-feedback d-block">{{ form.gpa.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Graduation Year</label>
+              {{ form.graduation_year }}
+              {% if form.graduation_year.errors %}<div class="invalid-feedback d-block">{{ form.graduation_year.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">University Name</label>
+              {{ form.university_name }}
+              {% if form.university_name.errors %}<div class="invalid-feedback d-block">{{ form.university_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Specialization / Field of Study</label>
+              {{ form.specialization }}
+              {% if form.specialization.errors %}<div class="invalid-feedback d-block">{{ form.specialization.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Skills <span style="color:#9ca3af;font-weight:400">— comma-separated (e.g. Python, Django, SQL)</span></label>
+              {{ form.skills }}
+              {% if form.skills.errors %}<div class="invalid-feedback d-block">{{ form.skills.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Work Experience</label>
+              {{ form.work_experience }}
+              {% if form.work_experience.errors %}<div class="invalid-feedback d-block">{{ form.work_experience.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+          <div style="margin-top:1.25rem;display:flex;gap:.75rem;">
+            <button type="submit" class="btn-primary">
+              <i class="bi bi-save"></i> Save Profile
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="gc-card mb-3">
+      <div class="gc-card-header"><i class="bi bi-lightbulb"></i> Profile Tips</div>
+      <div class="gc-card-body">
+        <div style="display:flex;flex-direction:column;gap:.6rem;font-size:.85rem;color:#4b5563;">
+          <div><i class="bi bi-check-circle-fill me-2" style="color:#2d7a4f;"></i>Complete all fields for better visibility</div>
+          <div><i class="bi bi-check-circle-fill me-2" style="color:#2d7a4f;"></i>Upload verified credentials to unlock full access</div>
+          <div><i class="bi bi-check-circle-fill me-2" style="color:#2d7a4f;"></i>List skills as comma-separated values</div>
+          <div><i class="bi bi-check-circle-fill me-2" style="color:#2d7a4f;"></i>Accurate GPA improves your match score</div>
+        </div>
+      </div>
+    </div>
+    <div class="gc-card">
+      <div class="gc-card-header"><i class="bi bi-link-45deg"></i> Quick Links</div>
+      <div class="gc-card-body" style="display:flex;flex-direction:column;gap:.5rem;">
+        <a href="/jobs/" class="btn-outline" style="justify-content:center;">
+          <i class="bi bi-briefcase"></i> Browse Jobs
+        </a>
+        <a href="/graduates/applications/" class="btn-outline" style="justify-content:center;">
+          <i class="bi bi-list-check"></i> My Applications
+        </a>
+        <a href="/graduates/credentials/upload/" class="btn-outline" style="justify-content:center;">
+          <i class="bi bi-upload"></i> Upload Credential
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

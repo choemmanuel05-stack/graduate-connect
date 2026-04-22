@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}My Applications{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h4><i class="bi bi-send-check me-2"></i>My Applications</h4>
+    <div class="subtitle">Track the status of all your job applications</div>
+  </div>
+  <a href="/jobs/" class="btn-primary"><i class="bi bi-briefcase"></i> Browse More Jobs</a>
+</div>
+
+<div class="gc-card">
+  {% if applications %}
+    <div style="overflow-x:auto;">
+      <table class="gc-table">
+        <thead>
+          <tr>
+            <th>Job Title</th>
+            <th>Company</th>
+            <th>Applied</th>
+            <th>Match Score</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in applications %}
+            <tr>
+              <td>
+                <a href="/jobs/{{ app.job_listing.pk }}/" style="font-weight:600;color:#1e3a5f;text-decoration:none;">
+                  {{ app.job_listing.title }}
+                </a>
+              </td>
+              <td style="font-size:.85rem;color:#4b5563;">{{ app.job_listing.employer.company_name }}</td>
+              <td style="font-size:.82rem;color:#9ca3af;">{{ app.submitted_at|date:"M d, Y" }}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:.5rem;">
+                  <div style="width:60px;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;">
+                    <div style="width:{{ app.match_score }}%;height:100%;background:linear-gradient(90deg,#4a7ab5,#2c5282);border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:.82rem;font-weight:600;color:#2c5282;">{{ app.match_score }}%</span>
+                </div>
+              </td>
+              <td>
+                {% if app.status == 'applied' %}<span class="badge-applied">Applied</span>
+                {% elif app.status == 'shortlisted' %}<span class="badge-shortlisted">Shortlisted</span>
+                {% elif app.status == 'interviewed' %}<span class="badge-interviewed">Interviewed</span>
+                {% elif app.status == 'rejected' %}<span class="badge-rejected">Rejected</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="bi bi-send"></i>
+      <h6>No Applications Yet</h6>
+      <p style="font-size:.85rem;">You haven't applied to any jobs yet.</p>
+      <a href="/jobs/" class="btn-primary" style="margin-top:.75rem;">Browse Job Listings</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

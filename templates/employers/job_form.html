@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Job Listing{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h4><i class="bi bi-briefcase-fill me-2"></i>{{ action }} Job Listing</h4>
+    <div class="subtitle">Fill in the details to {{ action|lower }} a job listing</div>
+  </div>
+  <a href="/employers/dashboard/" class="btn-outline">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+  </a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="gc-card">
+      <div class="gc-card-header"><i class="bi bi-pencil-square"></i> Job Details</div>
+      <div class="gc-card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Job Title *</label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="invalid-feedback d-block">{{ form.title.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Job Description *</label>
+            {{ form.description }}
+            {% if form.description.errors %}<div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Required Degree Type</label>
+              {{ form.required_degree_type }}
+              {% if form.required_degree_type.errors %}<div class="invalid-feedback d-block">{{ form.required_degree_type.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Minimum GPA <span style="color:#9ca3af;font-weight:400">(0.0 – 4.0)</span></label>
+              {{ form.minimum_gpa }}
+              {% if form.minimum_gpa.errors %}<div class="invalid-feedback d-block">{{ form.minimum_gpa.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Required Specialization</label>
+            {{ form.required_specialization }}
+            {% if form.required_specialization.errors %}<div class="invalid-feedback d-block">{{ form.required_specialization.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Required Skills <span style="color:#9ca3af;font-weight:400">— comma-separated</span></label>
+            {{ form.required_skills }}
+            {% if form.required_skills.errors %}<div class="invalid-feedback d-block">{{ form.required_skills.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Application Deadline</label>
+              {{ form.application_deadline }}
+              {% if form.application_deadline.errors %}<div class="invalid-feedback d-block">{{ form.application_deadline.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              {{ form.is_active }}
+              {% if form.is_active.errors %}<div class="invalid-feedback d-block">{{ form.is_active.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+          <div style="display:flex;gap:.75rem;margin-top:1.25rem;">
+            <button type="submit" class="btn-primary">
+              <i class="bi bi-save"></i> {{ action }} Listing
+            </button>
+            <a href="/employers/dashboard/" class="btn-outline">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="gc-card">
+      <div class="gc-card-header"><i class="bi bi-info-circle"></i> Matching Tips</div>
+      <div class="gc-card-body" style="font-size:.85rem;color:#4b5563;line-height:1.6;">
+        <p>The matching algorithm scores candidates based on:</p>
+        <ul style="padding-left:1.25rem;margin:0;">
+          <li><strong>GPA</strong> — 40 points</li>
+          <li><strong>Degree type</strong> — 20 points</li>
+          <li><strong>Specialization</strong> — 20 points</li>
+          <li><strong>Skills overlap</strong> — 20 points</li>
+        </ul>
+        <p style="margin-top:.75rem;">Leave fields blank to accept any value for that criterion.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

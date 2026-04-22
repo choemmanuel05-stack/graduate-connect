@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register — Graduate Connect</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    /*
+      Same design system as login.html.
+      We define all colors as CSS variables so both pages look consistent.
+      If you ever want to change the brand color, you only change it here.
+    */
+    :root {
+      --navy:       #0f2744;
+      --navy-mid:   #1a3a5c;
+      --blue:       #3b82f6;
+      --blue-dark:  #2563eb;
+      --blue-light: #eff6ff;
+      --white:      #ffffff;
+      --slate:      #1e293b;
+      --muted:      #64748b;
+      --border:     #e2e8f0;
+      --error:      #dc2626;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 40%, #1e4080 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .wrapper { width: 100%; max-width: 500px; }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 1.75rem;
+      color: var(--white);
+    }
+    .brand-icon {
+      width: 60px; height: 60px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.75rem;
+      margin: 0 auto .85rem;
+    }
+    .brand h1 { font-size: 1.5rem; font-weight: 800; }
+    .brand p  { font-size: .82rem; opacity: .7; margin-top: .2rem; }
+
+    .card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 2.25rem;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.35);
+    }
+
+    .card h2 { font-size: 1.35rem; font-weight: 800; color: var(--slate); margin-bottom: .25rem; }
+    .card .sub { color: var(--muted); font-size: .88rem; margin-bottom: 1.5rem; }
+
+    /* Two-column grid for password fields on wider screens */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; }
+    @media (max-width: 480px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .field { margin-bottom: .9rem; }
+
+    label {
+      display: block;
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--slate);
+      margin-bottom: .35rem;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: .75rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: .93rem;
+      color: var(--slate);
+      background: #f8fafc;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--blue);
+      background: var(--white);
+      box-shadow: 0 0 0 4px rgba(59,130,246,.12);
+    }
+    .is-invalid { border-color: var(--error) !important; }
+    .error-msg { color: var(--error); font-size: .78rem; margin-top: .3rem; }
+
+    /*
+      ROLE SELECTION CARDS:
+      We hide the actual radio inputs (they're invisible) and style the
+      label elements as clickable cards instead. When the radio is checked,
+      we use the CSS adjacent sibling selector (+) to style the card.
+      This is a common pattern for custom radio/checkbox UI.
+    */
+    .role-label { font-size: .78rem; font-weight: 700; color: var(--slate); letter-spacing: .03em; text-transform: uppercase; margin-bottom: .5rem; display: block; }
+
+    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .9rem; }
+
+    /* Hide the actual radio input — we don't want to see it */
+    .role-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+
+    /* Style the label as a card */
+    .role-card {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem .75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, box-shadow .2s;
+      display: block;
+    }
+    .role-card:hover { border-color: var(--blue); background: var(--blue-light); }
+
+    /* When the radio IS checked, style the adjacent label card */
+    .role-option input:checked + .role-card {
+      border-color: var(--blue-dark);
+      background: var(--blue-light);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+    }
+
+    .role-card i { font-size: 1.6rem; display: block; margin-bottom: .4rem; }
+    .role-card .role-name { font-weight: 700; font-size: .88rem; color: var(--slate); }
+    .role-card .role-desc { font-size: .75rem; color: var(--muted); margin-top: .15rem; }
+
+    .btn {
+      width: 100%;
+      padding: .85rem;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+      color: var(--white);
+      border: none;
+      border-radius: 10px;
+      font-size: .98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      margin-top: .5rem;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,.4); }
+
+    .divider {
+      display: flex; align-items: center; gap: .75rem;
+      color: var(--muted); font-size: .82rem; margin: 1.1rem 0;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .footer-link { text-align: center; font-size: .88rem; color: var(--muted); }
+    .footer-link a { color: var(--blue-dark); font-weight: 700; text-decoration: none; }
+
+    .alert {
+      background: #fef2f2; border: 1px solid #fecaca;
+      color: var(--error); border-radius: 10px;
+      padding: .7rem 1rem; font-size: .85rem;
+      margin-bottom: 1rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="brand">
+    <div class="brand-icon"><i class="bi bi-mortarboard-fill"></i></div>
+    <h1>Graduate Connect</h1>
+    <p>CATUC Bamenda — Create your account</p>
+  </div>
+
+  <div class="card">
+    <h2>Create Account</h2>
+    <p class="sub">Join the platform and start your journey today</p>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <!-- Full Name field -->
+      <div class="field">
+        <label for="full_name">Full Name</label>
+        <input type="text" name="full_name" id="full_name"
+               placeholder="e.g. John Doe"
+               value="{{ form.full_name.value|default:'' }}"
+               class="{% if form.full_name.errors %}is-invalid{% endif %}" />
+        {% if form.full_name.errors %}<p class="error-msg">{{ form.full_name.errors.0 }}</p>{% endif %}
+      </div>
+
+      <!-- Email field -->
+      <div class="field">
+        <label for="email">Email Address</label>
+        <input type="email" name="email" id="email"
+               placeholder="you@example.com"
+               value="{{ form.email.value|default:'' }}"
+               class="{% if form.email.errors %}is-invalid{% endif %}" />
+        {% if form.email.errors %}<p class="error-msg">{{ form.email.errors.0 }}</p>{% endif %}
+      </div>
+
+      <!-- Role selection — Graduate or Employer -->
+      <span class="role-label">I am registering as a...</span>
+      <div class="role-grid">
+        <div class="role-option">
+          <!--
+            The radio input is hidden. Its ID links to the label below via "for".
+            When clicked, the label triggers the radio, and CSS styles the card.
+          -->
+          <input type="radio" name="role" value="graduate" id="role_grad"
+                 {% if not form.role.value or form.role.value == 'graduate' %}checked{% endif %} />
+          <label class="role-card" for="role_grad">
+            <i class="bi bi-mortarboard" style="color:#2563eb;"></i>
+            <div class="role-name">Graduate</div>
+            <div class="role-desc">Looking for jobs</div>
+          </label>
+        </div>
+        <div class="role-option">
+          <input type="radio" name="role" value="employer" id="role_emp"
+                 {% if form.role.value == 'employer' %}checked{% endif %} />
+          <label class="role-card" for="role_emp">
+            <i class="bi bi-building" style="color:#16a34a;"></i>
+            <div class="role-name">Employer</div>
+            <div class="role-desc">Hiring graduates</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Password fields in a 2-column grid -->
+      <div class="grid-2">
+        <div class="field">
+          <label for="password">Password <span style="color:var(--muted);font-weight:400;text-transform:none;">(min 8)</span></label>
+          <input type="password" name="password" id="password"
+                 placeholder="••••••••"
+                 class="{% if form.password.errors %}is-invalid{% endif %}" />
+          {% if form.password.errors %}<p class="error-msg">{{ form.password.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="field">
+          <label for="password_confirm">Confirm Password</label>
+          <input type="password" name="password_confirm" id="password_confirm"
+                 placeholder="••••••••"
+                 class="{% if form.password_confirm.errors %}is-invalid{% endif %}" />
+          {% if form.password_confirm.errors %}<p class="error-msg">{{ form.password_confirm.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="alert"><i class="bi bi-exclamation-circle-fill"></i>{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <button type="submit" class="btn">
+        <i class="bi bi-person-plus-fill"></i> Create My Account
+      </button>
+    </form>
+
+    <div class="divider">or</div>
+    <div class="footer-link">Already have an account? <a href="/accounts/login/">Sign in here</a></div>
+  </div>
+</div>
+</body>
+</html>

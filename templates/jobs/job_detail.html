@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}{{ job.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h4>{{ job.title }}</h4>
+    <div class="subtitle">
+      <i class="bi bi-building me-1"></i>{{ job.employer.company_name }}
+      {% if job.employer.location %} · {{ job.employer.location }}{% endif %}
+    </div>
+  </div>
+  {% if job.is_active %}
+    <span class="badge-active" style="font-size:.85rem;padding:.35rem .85rem;">Active</span>
+  {% else %}
+    <span class="badge-rejected" style="font-size:.85rem;padding:.35rem .85rem;">Closed</span>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="gc-card mb-3">
+      <div class="gc-card-header"><i class="bi bi-file-text"></i> Job Description</div>
+      <div class="gc-card-body" style="line-height:1.7;color:#4b5563;">{{ job.description }}</div>
+    </div>
+    {% if job.required_skills %}
+      <div class="gc-card">
+        <div class="gc-card-header"><i class="bi bi-tools"></i> Required Skills</div>
+        <div class="gc-card-body">
+          <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+            {% for skill in job.required_skills.split(',') %}
+              <span style="background:#ebf4ff;color:#2c5282;border-radius:6px;padding:.3rem .75rem;font-size:.82rem;font-weight:600;">
+                {{ skill|trim }}
+              </span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+  <div class="col-lg-4">
+    <div class="gc-card mb-3">
+      <div class="gc-card-header"><i class="bi bi-list-check"></i> Requirements</div>
+      <div class="gc-card-body" style="padding:0;">
+        <div style="padding:.75rem 1.25rem;border-bottom:1px solid #f3f4f6;">
+          <div style="font-size:.75rem;color:#9ca3af;margin-bottom:.2rem;">Degree Required</div>
+          <div style="font-weight:600;color:#1e3a5f;font-size:.9rem;">{{ job.get_required_degree_type_display|default:"Any" }}</div>
+        </div>
+        <div style="padding:.75rem 1.25rem;border-bottom:1px solid #f3f4f6;">
+          <div style="font-size:.75rem;color:#9ca3af;margin-bottom:.2rem;">Minimum GPA</div>
+          <div style="font-weight:600;color:#1e3a5f;font-size:.9rem;">{{ job.minimum_gpa|default:"Not specified" }}</div>
+        </div>
+        <div style="padding:.75rem 1.25rem;border-bottom:1px solid #f3f4f6;">
+          <div style="font-size:.75rem;color:#9ca3af;margin-bottom:.2rem;">Specialization</div>
+          <div style="font-weight:600;color:#1e3a5f;font-size:.9rem;">{{ job.required_specialization|default:"Any" }}</div>
+        </div>
+        <div style="padding:.75rem 1.25rem;">
+          <div style="font-size:.75rem;color:#9ca3af;margin-bottom:.2rem;">Application Deadline</div>
+          <div style="font-weight:600;color:#1e3a5f;font-size:.9rem;">{{ job.application_deadline|date:"M d, Y"|default:"Open" }}</div>
+        </div>
+      </div>
+    </div>
+
+    {% if user.is_authenticated and user.role == 'graduate' %}
+      <div class="gc-card">
+        <div class="gc-card-body">
+          {% if already_applied %}
+            <div class="gc-alert info">
+              <i class="bi bi-check-circle-fill"></i>
+              You have already applied to this position.
+            </div>
+            <a href="/graduates/applications/" class="btn-outline" style="width:100%;justify-content:center;">
+              View My Applications
+            </a>
+          {% elif job.is_active %}
+            <div style="margin-bottom:1rem;font-size:.85rem;color:#4b5563;line-height:1.5;">
+              Your match score will be calculated automatically based on your profile when you apply.
+            </div>
+            <a href="/jobs/{{ job.pk }}/apply/" class="btn-primary" style="width:100%;justify-content:center;padding:.85rem;">
+              <i class="bi bi-send"></i> Apply Now
+            </a>
+          {% else %}
+            <div class="gc-alert warning">
+              <i class="bi bi-exclamation-triangle"></i>
+              This listing is no longer accepting applications.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% elif not user.is_authenticated %}
+      <div class="gc-card">
+        <div class="gc-card-body" style="text-align:center;">
+          <i class="bi bi-lock" style="font-size:2rem;color:#9ca3af;display:block;margin-bottom:.75rem;"></i>
+          <p style="font-size:.88rem;color:#4b5563;margin-bottom:1rem;">Sign in to apply for this position</p>
+          <a href="/accounts/login/" class="btn-primary" style="width:100%;justify-content:center;">Login to Apply</a>
+          <div style="margin-top:.75rem;font-size:.82rem;color:#9ca3af;">
+            No account? <a href="/accounts/register/" style="color:#4a7ab5;font-weight:600;">Register free</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

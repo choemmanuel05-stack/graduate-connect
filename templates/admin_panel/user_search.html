@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}User Management{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h4><i class="bi bi-people me-2"></i>User Management</h4>
+    <div class="subtitle">Search and manage platform users</div>
+  </div>
+</div>
+
+<div class="gc-card mb-3">
+  <div class="gc-card-body">
+    <form method="get" style="display:flex;gap:.75rem;align-items:flex-end;">
+      <div style="flex:1;">
+        <label class="form-label">Search Users</label>
+        <input type="text" name="q" class="form-control" placeholder="Search by name or email..." value="{{ query }}">
+      </div>
+      <button type="submit" class="btn-primary" style="height:42px;">
+        <i class="bi bi-search"></i> Search
+      </button>
+      {% if query %}
+        <a href="/admin-panel/users/" class="btn-outline" style="height:42px;">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="gc-card">
+  <div style="overflow-x:auto;">
+    <table class="gc-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Role</th>
+          <th>Joined</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr>
+            <td>
+              <div style="font-weight:600;color:#1e3a5f;">{{ u.get_full_name|default:"—" }}</div>
+              <div style="font-size:.78rem;color:#9ca3af;">{{ u.email }}</div>
+            </td>
+            <td>
+              <span class="badge-active" style="text-transform:capitalize;">{{ u.role }}</span>
+            </td>
+            <td><span style="font-size:.82rem;color:#9ca3af;">{{ u.date_joined|date:"M d, Y" }}</span></td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge-verified">Active</span>
+              {% else %}
+                <span class="badge-rejected">Inactive</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if u.is_active %}
+                <a href="/admin-panel/users/{{ u.pk }}/deactivate/" class="btn-danger-sm">
+                  <i class="bi bi-person-x me-1"></i>Deactivate
+                </a>
+              {% else %}
+                <a href="/admin-panel/users/{{ u.pk }}/reactivate/" class="btn-success-sm">
+                  <i class="bi bi-person-check me-1"></i>Reactivate
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" style="text-align:center;padding:2rem;color:#9ca3af;">No users found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

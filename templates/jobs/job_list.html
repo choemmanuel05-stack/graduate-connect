@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Browse Jobs{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h4><i class="bi bi-briefcase me-2"></i>Browse Job Listings</h4>
+    <div class="subtitle">{{ jobs|length }} active position{{ jobs|length|pluralize }} available</div>
+  </div>
+</div>
+
+{% if jobs %}
+  <div class="row g-3">
+    {% for job in jobs %}
+      <div class="col-md-6 col-lg-4">
+        <div class="gc-card" style="height:100%;display:flex;flex-direction:column;">
+          <div class="gc-card-body" style="flex:1;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;">
+              <h6 style="font-weight:700;color:#1e3a5f;margin:0;font-size:.95rem;">{{ job.title }}</h6>
+              <span class="badge-active">Active</span>
+            </div>
+            <div style="color:#4a7ab5;font-weight:600;font-size:.85rem;margin-bottom:.75rem;">
+              <i class="bi bi-building me-1"></i>{{ job.employer.company_name }}
+              {% if job.employer.location %}
+                <span style="color:#9ca3af;font-weight:400;"> · {{ job.employer.location }}</span>
+              {% endif %}
+            </div>
+            <p style="font-size:.85rem;color:#4b5563;margin-bottom:.75rem;line-height:1.5;">
+              {{ job.description|truncatewords:18 }}
+            </p>
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.75rem;">
+              {% if job.required_degree_type %}
+                <span style="background:#ebf4ff;color:#2c5282;border-radius:6px;padding:.2rem .55rem;font-size:.75rem;font-weight:600;">
+                  {{ job.get_required_degree_type_display }}
+                </span>
+              {% endif %}
+              {% if job.minimum_gpa %}
+                <span style="background:#f0fff4;color:#276749;border-radius:6px;padding:.2rem .55rem;font-size:.75rem;font-weight:600;">
+                  GPA ≥ {{ job.minimum_gpa }}
+                </span>
+              {% endif %}
+              {% if job.required_specialization %}
+                <span style="background:#faf5ff;color:#553c9a;border-radius:6px;padding:.2rem .55rem;font-size:.75rem;font-weight:600;">
+                  {{ job.required_specialization|truncatechars:20 }}
+                </span>
+              {% endif %}
+            </div>
+            {% if job.application_deadline %}
+              <div style="font-size:.78rem;color:#9ca3af;margin-bottom:.75rem;">
+                <i class="bi bi-calendar3 me-1"></i>Deadline: {{ job.application_deadline|date:"M d, Y" }}
+              </div>
+            {% endif %}
+          </div>
+          <div style="padding:.75rem 1.25rem;border-top:1px solid #f3f4f6;">
+            <a href="/jobs/{{ job.pk }}/" class="btn-primary" style="width:100%;justify-content:center;">
+              View Details & Apply
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="gc-card">
+    <div class="empty-state">
+      <i class="bi bi-briefcase"></i>
+      <h6>No Active Job Listings</h6>
+      <p style="font-size:.85rem;">Check back soon for new opportunities.</p>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

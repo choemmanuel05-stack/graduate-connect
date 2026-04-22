@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Search Candidates{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h4><i class="bi bi-people me-2"></i>Search Candidates</h4>
+    <div class="subtitle">Find verified graduates matching your requirements</div>
+  </div>
+</div>
+
+<div class="gc-card mb-3">
+  <div class="gc-card-header"><i class="bi bi-funnel"></i> Filter Candidates</div>
+  <div class="gc-card-body">
+    <form method="get">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Degree Type</label>
+          <select name="degree_type" class="form-select">
+            <option value="">Any Degree</option>
+            <option value="bachelor" {% if filters.degree_type == 'bachelor' %}selected{% endif %}>Bachelor</option>
+            <option value="master" {% if filters.degree_type == 'master' %}selected{% endif %}>Master</option>
+            <option value="phd" {% if filters.degree_type == 'phd' %}selected{% endif %}>PhD</option>
+            <option value="diploma" {% if filters.degree_type == 'diploma' %}selected{% endif %}>Diploma</option>
+            <option value="certificate" {% if filters.degree_type == 'certificate' %}selected{% endif %}>Certificate</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Min GPA</label>
+          <input type="number" name="min_gpa" class="form-control" placeholder="e.g. 3.0" step="0.1" min="0" max="4" value="{{ filters.min_gpa }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Specialization</label>
+          <input type="text" name="specialization" class="form-control" placeholder="e.g. Computer Science" value="{{ filters.specialization }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Skills</label>
+          <input type="text" name="skills" class="form-control" placeholder="e.g. Python, Django" value="{{ filters.skills }}">
+        </div>
+        <div class="col-md-1" style="display:flex;align-items:flex-end;">
+          <button type="submit" class="btn-primary" style="width:100%;justify-content:center;">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if profiles %}
+  <div class="row g-3">
+    {% for profile in profiles %}
+      <div class="col-md-6 col-lg-4">
+        <div class="gc-card" style="height:100%;">
+          <div class="gc-card-body">
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem;">
+              <div style="width:44px;height:44px;background:#ebf4ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#4a7ab5;flex-shrink:0;">
+                <i class="bi bi-person"></i>
+              </div>
+              <div>
+                <div style="font-weight:700;color:#1e3a5f;font-size:.92rem;">
+                  {{ profile.user.get_full_name|default:profile.user.email }}
+                </div>
+                <div style="font-size:.78rem;color:#9ca3af;">{{ profile.university_name|default:"University not specified" }}</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.75rem;">
+              {% if profile.degree_type %}
+                <span style="background:#ebf4ff;color:#2c5282;border-radius:6px;padding:.2rem .55rem;font-size:.75rem;font-weight:600;">
+                  {{ profile.get_degree_type_display }}
+                </span>
+              {% endif %}
+              {% if profile.gpa %}
+                <span style="background:#f0fff4;color:#276749;border-radius:6px;padding:.2rem .55rem;font-size:.75rem;font-weight:600;">
+                  GPA: {{ profile.gpa }}
+                </span>
+              {% endif %}
+              {% if profile.graduation_year %}
+                <span style="background:#faf5ff;color:#553c9a;border-radius:6px;padding:.2rem .55rem;font-size:.75rem;font-weight:600;">
+                  {{ profile.graduation_year }}
+                </span>
+              {% endif %}
+            </div>
+            {% if profile.specialization %}
+              <div style="font-size:.82rem;color:#4b5563;margin-bottom:.5rem;">
+                <i class="bi bi-bookmark me-1" style="color:#4a7ab5;"></i>{{ profile.specialization }}
+              </div>
+            {% endif %}
+            {% if profile.skills %}
+              <div style="font-size:.78rem;color:#9ca3af;margin-bottom:.75rem;">
+                <i class="bi bi-tools me-1"></i>{{ profile.skills|truncatechars:60 }}
+              </div>
+            {% endif %}
+            <a href="/graduates/profile/{{ profile.pk }}/" class="btn-outline" style="width:100%;justify-content:center;font-size:.82rem;">
+              View Full Profile
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {% if profiles.has_other_pages %}
+    <div style="display:flex;justify-content:center;gap:.5rem;margin-top:1.5rem;">
+      {% if profiles.has_previous %}
+        <a href="?page={{ profiles.previous_page_number }}&degree_type={{ filters.degree_type }}&min_gpa={{ filters.min_gpa }}&specialization={{ filters.specialization }}&skills={{ filters.skills }}" class="btn-outline">
+          <i class="bi bi-chevron-left"></i> Previous
+        </a>
+      {% endif %}
+      {% if profiles.has_next %}
+        <a href="?page={{ profiles.next_page_number }}&degree_type={{ filters.degree_type }}&min_gpa={{ filters.min_gpa }}&specialization={{ filters.specialization }}&skills={{ filters.skills }}" class="btn-primary">
+          Next <i class="bi bi-chevron-right"></i>
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+{% else %}
+  <div class="gc-card">
+    <div class="empty-state">
+      <i class="bi bi-people"></i>
+      <h6>No Candidates Found</h6>
+      <p style="font-size:.85rem;">Try adjusting your search filters to find more candidates.</p>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

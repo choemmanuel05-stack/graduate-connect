@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Applications — {{ job.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h4><i class="bi bi-people me-2"></i>Applications for: {{ job.title }}</h4>
+    <div class="subtitle">{{ applications|length }} application{{ applications|length|pluralize }} received · Sorted by match score</div>
+  </div>
+  <a href="/employers/dashboard/" class="btn-outline">
+    <i class="bi bi-arrow-left"></i> Dashboard
+  </a>
+</div>
+
+<div class="gc-card">
+  {% if applications %}
+    <div style="overflow-x:auto;">
+      <table class="gc-table">
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>Match Score</th>
+            <th>Applied</th>
+            <th>Status</th>
+            <th>Update Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in applications %}
+            <tr>
+              <td>
+                <a href="/graduates/profile/{{ app.graduate.pk }}/" style="font-weight:600;color:#1e3a5f;text-decoration:none;">
+                  {{ app.graduate.user.get_full_name|default:app.graduate.user.email }}
+                </a>
+                <div style="font-size:.75rem;color:#9ca3af;">{{ app.graduate.university_name|default:"" }}</div>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center;gap:.6rem;">
+                  <div style="width:70px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:{{ app.match_score }}%;height:100%;background:linear-gradient(90deg,#4a7ab5,#2c5282);border-radius:4px;"></div>
+                  </div>
+                  <span style="font-weight:700;color:#2c5282;font-size:.88rem;">{{ app.match_score }}%</span>
+                </div>
+              </td>
+              <td style="font-size:.82rem;color:#9ca3af;">{{ app.submitted_at|date:"M d, Y" }}</td>
+              <td>
+                {% if app.status == 'applied' %}<span class="badge-applied">Applied</span>
+                {% elif app.status == 'shortlisted' %}<span class="badge-shortlisted">Shortlisted</span>
+                {% elif app.status == 'interviewed' %}<span class="badge-interviewed">Interviewed</span>
+                {% elif app.status == 'rejected' %}<span class="badge-rejected">Rejected</span>
+                {% endif %}
+              </td>
+              <td>
+                <form method="post" style="display:flex;gap:.4rem;align-items:center;">
+                  {% csrf_token %}
+                  <input type="hidden" name="application_id" value="{{ app.pk }}">
+                  <select name="status" class="form-select" style="font-size:.8rem;padding:.3rem .6rem;width:auto;">
+                    <option value="shortlisted">Shortlisted</option>
+                    <option value="interviewed">Interviewed</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                  <button type="submit" class="btn-primary" style="padding:.3rem .75rem;font-size:.8rem;">
+                    Update
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <h6>No Applications Yet</h6>
+      <p style="font-size:.85rem;">No one has applied to this listing yet.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

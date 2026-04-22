@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Employer Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h4><i class="bi bi-speedometer2 me-2"></i>{{ profile.company_name }}</h4>
+    <div class="subtitle">Employer Dashboard — Manage your job listings and candidates</div>
+  </div>
+  <a href="/employers/jobs/create/" class="btn-primary">
+    <i class="bi bi-plus-circle"></i> Post a Job
+  </a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-briefcase"></i></div>
+      <div>
+        <div class="stat-value">{{ listings|length }}</div>
+        <div class="stat-label">Total Listings</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
+      <div>
+        <div class="stat-value">{{ listings|length }}</div>
+        <div class="stat-label">Active Listings</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-people"></i></div>
+      <div>
+        <div class="stat-value"><a href="/employers/candidates/" style="color:inherit;text-decoration:none;">Search</a></div>
+        <div class="stat-label">Find Candidates</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="gc-card">
+  <div class="gc-card-header" style="justify-content:space-between;">
+    <span><i class="bi bi-list-ul"></i> Your Job Listings</span>
+    <a href="/employers/jobs/create/" class="btn-primary" style="padding:.35rem .85rem;font-size:.82rem;">
+      <i class="bi bi-plus"></i> New
+    </a>
+  </div>
+  {% if listings %}
+    <div style="overflow-x:auto;">
+      <table class="gc-table">
+        <thead>
+          <tr><th>Job Title</th><th>Requirements</th><th>Deadline</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for job in listings %}
+            <tr>
+              <td>
+                <a href="/jobs/{{ job.pk }}/" style="font-weight:600;color:#1e3a5f;text-decoration:none;">{{ job.title }}</a>
+                <div style="font-size:.75rem;color:#9ca3af;margin-top:.15rem;">Posted {{ job.created_at|date:"M d, Y" }}</div>
+              </td>
+              <td style="font-size:.82rem;color:#4b5563;">
+                {{ job.get_required_degree_type_display|default:"Any degree" }}
+                {% if job.minimum_gpa %} · GPA ≥ {{ job.minimum_gpa }}{% endif %}
+              </td>
+              <td style="font-size:.82rem;color:#9ca3af;">{{ job.application_deadline|date:"M d, Y"|default:"Open" }}</td>
+              <td>
+                {% if job.is_active %}<span class="badge-active">Active</span>
+                {% else %}<span class="badge-rejected">Inactive</span>{% endif %}
+              </td>
+              <td>
+                <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+                  <a href="/employers/jobs/{{ job.pk }}/applications/" class="btn-success-sm">
+                    <i class="bi bi-people"></i>
+                  </a>
+                  <a href="/employers/jobs/{{ job.pk }}/update/" class="btn-outline" style="padding:.3rem .65rem;font-size:.78rem;">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  {% if job.is_active %}
+                    <a href="/employers/jobs/{{ job.pk }}/deactivate/" class="btn-danger-sm">
+                      <i class="bi bi-pause-circle"></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="bi bi-briefcase"></i>
+      <h6>No Job Listings Yet</h6>
+      <p style="font-size:.85rem;">Post your first job to start finding qualified graduates.</p>
+      <a href="/employers/jobs/create/" class="btn-primary" style="margin-top:.75rem;">Post a Job</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

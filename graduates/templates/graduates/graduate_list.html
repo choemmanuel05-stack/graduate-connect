@@ -1,0 +1,20 @@
+{% extends 'graduates/base.html' %}
+
+{% block title %}Graduate List{% endblock %}
+
+{% block content %}
+<h1>Graduates</h1>
+<h2>List of Graduates</h2>
+<p>This is where the graduates will be listed.</p>
+<ul class="list-group">
+    {% for graduate in graduates %}
+    <li class="list-group-item">
+        <a href="{% url 'graduate_detail' graduate.id %}">
+            <strong>{{ graduate.first_name }} {{ graduate.last_name }}</strong>
+        </a> - {{ graduate.email }} - {{ graduate.graduation_year }}
+    </li>
+    {% empty %}
+    <li class="list-group-item">No graduates found.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

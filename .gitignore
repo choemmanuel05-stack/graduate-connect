@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+env/
+.venv/
+myapp/venv/
+myapp/myapp/venv/
+
+# Django
+*.sqlite3
+staticfiles/
+media/
+db.sqlite3
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Node / Frontend (handled by frontend's own .gitignore)
+linkedin-react-frontend/node_modules/
+linkedin-react-frontend/dist/
+
+# Kiro
+.kiro/
+
+# myapp (old test app, not needed for deployment)
+myapp/productionfiles/
