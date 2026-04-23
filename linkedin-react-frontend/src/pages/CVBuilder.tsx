@@ -190,9 +190,9 @@ const CVBuilder:React.FC = () => {
         link.click();
       } else if (format === 'pdf') {
         const canvas = await captureCanvas();
-        const { jsPDF } = await import('jspdf');
+        const { default: JsPDF } = await import('jspdf');
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pdf = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
         const w = pdf.internal.pageSize.getWidth();
         pdf.addImage(imgData, 'JPEG', 0, 0, w, (canvas.height * w) / canvas.width);
         pdf.save(`${name}_Resume.pdf`);
