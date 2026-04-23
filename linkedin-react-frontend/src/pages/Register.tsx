@@ -20,6 +20,7 @@ const Register: React.FC = () => {
     fullName: '', email: '', password: '', confirm: '', role: 'graduate', agreed: false,
   });
   const [showPw, setShowPw] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -155,14 +156,20 @@ const Register: React.FC = () => {
             </div>
             <div>
               <label className="field-label">Confirm</label>
-              <input
-                type="password" value={form.confirm}
-                onChange={setField('confirm')}
-                onBlur={e => validateField('confirm', e.target.value)}
-                placeholder="Repeat"
-                style={inputStyle(!!errors.confirm)}
-                onFocus={e => { e.target.style.borderColor = '#60A5FA'; }}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showConfirm ? 'text' : 'password'} value={form.confirm}
+                  onChange={setField('confirm')}
+                  onBlur={e => validateField('confirm', e.target.value)}
+                  placeholder="Repeat"
+                  style={{ ...inputStyle(!!errors.confirm), paddingRight: '2.5rem' }}
+                  onFocus={e => { e.target.style.borderColor = '#60A5FA'; }}
+                />
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                  style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                  {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
               <Err msg={errors.confirm} />
             </div>
           </div>

@@ -19,6 +19,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ['email', 'password', 'role', 'full_name']
 
+    def validate_email(self, value):
+        if not value.lower().endswith('@gmail.com'):
+            raise serializers.ValidationError('Only Gmail addresses (@gmail.com) are accepted.')
+        return value.lower()
+
     def validate_full_name(self, value):
         if len(value.strip()) < 8:
             raise serializers.ValidationError('Full name must be at least 8 characters.')
