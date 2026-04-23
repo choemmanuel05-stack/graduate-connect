@@ -160,44 +160,55 @@ const CVBuilder:React.FC = () => {
     },1400);
   };
 
-  // ── Print / Download ───────────────────────────────────────────────────
+  // ── Export ─────────────────────────────────────────────────────────────
   const [exporting, setExporting] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
-  const handlePrint = async () => {
+  const captureCanvas = async () => {
     const element = printRef.current;
-    if (!element) return;
+    if (!element) throw new Error('No element');
+    const html2canvas = (await import('html2canvas')).default;
+    const orig = { transform: element.style.transform, width: element.style.width };
+    element.style.transform = 'none';
+    element.style.width = '794px';
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+    element.style.transform = orig.transform;
+    element.style.width = orig.width;
+    return canvas;
+  };
 
+  const exportAs = async (format: 'pdf' | 'jpeg' | 'docx') => {
+    setShowExportMenu(false);
     setExporting(true);
+    const name = cv.fullName || 'CV';
     try {
-      const html2canvas = (await import('html2canvas')).default;
-      const jsPDF = (await import('jspdf')).jsPDF;
-
-      // Temporarily make the preview full-size for capture
-      const originalTransform = element.style.transform;
-      const originalWidth = element.style.width;
-      element.style.transform = 'none';
-      element.style.width = '794px'; // A4 at 96dpi
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
-
-      // Restore original styles
-      element.style.transform = originalTransform;
-      element.style.width = originalWidth;
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${cv.fullName || 'CV'}_Resume.pdf`);
+      if (format === 'jpeg') {
+        const canvas = await captureCanvas();
+        const link = document.createElement('a');
+        link.download = `${name}_Resume.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+      } else if (format === 'pdf') {
+        const canvas = await captureCanvas();
+        const { jsPDF } = await import('jspdf');
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const w = pdf.internal.pageSize.getWidth();
+        pdf.addImage(imgData, 'JPEG', 0, 0, w, (canvas.height * w) / canvas.width);
+        pdf.save(`${name}_Resume.pdf`);
+      } else if (format === 'docx') {
+        // HTML-based Word document — opens in MS Word
+        const content = printRef.current?.innerHTML || '';
+        const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>${name} Resume</title></head><body>${content}</body></html>`;
+        const blob = new Blob([html], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.download = `${name}_Resume.doc`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
     } catch (err) {
-      console.error('PDF export failed:', err);
+      console.error('Export failed:', err);
       alert('Export failed. Please try again.');
     } finally {
       setExporting(false);
@@ -467,12 +478,25 @@ const CVBuilder:React.FC = () => {
             {saved ? <><Check size={13}/>Saved</> : <><Save size={13}/>Save</>}
           </button>
 
-          {/* Download PDF button */}
-          <button onClick={handlePrint} disabled={exporting} style={{display:'flex',alignItems:'center',gap:'0.4rem',padding:'0.5rem 1rem',background:exporting?'rgba(37,99,235,0.5)':'linear-gradient(135deg,#1D4ED8,#2563EB)',border:'none',borderRadius:8,color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:exporting?'not-allowed':'pointer',boxShadow:'0 4px 14px rgba(37,99,235,0.4)',transition:'all 150ms'}}
-            onMouseEnter={e=>{if(!exporting)e.currentTarget.style.boxShadow='0 6px 20px rgba(37,99,235,0.55)';}}
-            onMouseLeave={e=>{e.currentTarget.style.boxShadow='0 4px 14px rgba(37,99,235,0.4)';}}>
-            <Download size={14}/>{exporting?'Exporting…':'Export PDF'}
-          </button>
+          {/* Export dropdown */}
+          <div style={{position:'relative'}}>
+            <button onClick={()=>setShowExportMenu(p=>!p)} disabled={exporting}
+              style={{display:'flex',alignItems:'center',gap:'0.4rem',padding:'0.5rem 1rem',background:exporting?'rgba(37,99,235,0.5)':'linear-gradient(135deg,#1D4ED8,#2563EB)',border:'none',borderRadius:8,color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:exporting?'not-allowed':'pointer',boxShadow:'0 4px 14px rgba(37,99,235,0.4)'}}>
+              <Download size={14}/>{exporting?'Exporting…':'Export ▾'}
+            </button>
+            {showExportMenu && (
+              <div style={{position:'absolute',right:0,top:'calc(100% + 6px)',background:'#1E293B',border:'1px solid rgba(148,163,184,0.2)',borderRadius:10,overflow:'hidden',zIndex:100,minWidth:150,boxShadow:'0 8px 24px rgba(0,0,0,0.4)'}}>
+                {([['pdf','📄 PDF'],['jpeg','🖼 JPEG'],['docx','📝 Word (.doc)']] as const).map(([fmt,label])=>(
+                  <button key={fmt} onClick={()=>exportAs(fmt)}
+                    style={{display:'block',width:'100%',padding:'0.65rem 1rem',background:'none',border:'none',color:'#E2E8F0',fontSize:'0.83rem',fontWeight:600,cursor:'pointer',textAlign:'left'}}
+                    onMouseEnter={e=>e.currentTarget.style.background='rgba(96,165,250,0.1)'}
+                    onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
