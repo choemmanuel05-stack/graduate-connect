@@ -161,15 +161,47 @@ const CVBuilder:React.FC = () => {
   };
 
   // ── Print / Download ───────────────────────────────────────────────────
-  const handlePrint = () => {
-    const printContent = printRef.current?.innerHTML;
-    if(!printContent) return;
-    const w = window.open('','_blank');
-    if(!w) return;
-    w.document.write(`<!DOCTYPE html><html><head><title>${cv.fullName||'CV'} — Resume</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{background:#fff;}@page{size:A4;margin:0;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>${printContent}</body></html>`);
-    w.document.close();
-    w.focus();
-    setTimeout(()=>{w.print();w.close();},500);
+  const [exporting, setExporting] = useState(false);
+
+  const handlePrint = async () => {
+    const element = printRef.current;
+    if (!element) return;
+
+    setExporting(true);
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const jsPDF = (await import('jspdf')).jsPDF;
+
+      // Temporarily make the preview full-size for capture
+      const originalTransform = element.style.transform;
+      const originalWidth = element.style.width;
+      element.style.transform = 'none';
+      element.style.width = '794px'; // A4 at 96dpi
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+
+      // Restore original styles
+      element.style.transform = originalTransform;
+      element.style.width = originalWidth;
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${cv.fullName || 'CV'}_Resume.pdf`);
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      alert('Export failed. Please try again.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   // ── Completion percentage ──────────────────────────────────────────────
@@ -436,10 +468,10 @@ const CVBuilder:React.FC = () => {
           </button>
 
           {/* Download PDF button */}
-          <button onClick={handlePrint} style={{display:'flex',alignItems:'center',gap:'0.4rem',padding:'0.5rem 1rem',background:'linear-gradient(135deg,#1D4ED8,#2563EB)',border:'none',borderRadius:8,color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',boxShadow:'0 4px 14px rgba(37,99,235,0.4)',transition:'all 150ms'}}
-            onMouseEnter={e=>(e.currentTarget.style.boxShadow='0 6px 20px rgba(37,99,235,0.55)')}
-            onMouseLeave={e=>(e.currentTarget.style.boxShadow='0 4px 14px rgba(37,99,235,0.4)')}>
-            <Download size={14}/>Export PDF
+          <button onClick={handlePrint} disabled={exporting} style={{display:'flex',alignItems:'center',gap:'0.4rem',padding:'0.5rem 1rem',background:exporting?'rgba(37,99,235,0.5)':'linear-gradient(135deg,#1D4ED8,#2563EB)',border:'none',borderRadius:8,color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:exporting?'not-allowed':'pointer',boxShadow:'0 4px 14px rgba(37,99,235,0.4)',transition:'all 150ms'}}
+            onMouseEnter={e=>{if(!exporting)e.currentTarget.style.boxShadow='0 6px 20px rgba(37,99,235,0.55)';}}
+            onMouseLeave={e=>{e.currentTarget.style.boxShadow='0 4px 14px rgba(37,99,235,0.4)';}}>
+            <Download size={14}/>{exporting?'Exporting…':'Export PDF'}
           </button>
         </div>
       </div>
