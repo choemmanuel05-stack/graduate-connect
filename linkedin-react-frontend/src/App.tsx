@@ -29,6 +29,7 @@ const CompanyPage = lazy(() => import('./pages/CompanyPage'));
 const TermsOfUse = lazy(() => import('./pages/TermsOfUse'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const Help = lazy(() => import('./pages/Help'));
+const Landing = lazy(() => import('./pages/Landing'));
 
 const PageLoader = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
@@ -40,7 +41,7 @@ const PageLoader = () => (
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   if (loading) return <PageLoader />;
-  return user ? <>{children}</> : <Navigate to="/login" />;
+  return user ? <>{children}</> : <Navigate to="/landing" />;
 };
 
 function App() {
@@ -57,6 +58,7 @@ function App() {
             <Route path="/verify-email/:token" element={<VerifyEmail />} />
             <Route path="/resend-verification" element={<ResendVerification />} />
             <Route path="/check-email" element={<CheckEmail />} />
+            <Route path="/landing" element={<Landing />} />
             <Route path="/" element={<ProtectedRoute><Layout><Home /></Layout></ProtectedRoute>} />
             <Route path="/jobs" element={<ProtectedRoute><Layout><Jobs /></Layout></ProtectedRoute>} />
             <Route path="/graduates" element={<ProtectedRoute><Layout><Graduates /></Layout></ProtectedRoute>} />

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Menu, Briefcase, Home, LayoutDashboard, User, FileText, X, GraduationCap, MessageSquare, Sun, Moon } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Menu, Briefcase, Home, LayoutDashboard, User, FileText, X, GraduationCap, MessageSquare, Sun, Moon, LogOut } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { SearchBar } from './SearchBar';
 import { ProfileDropdown } from './ProfileDropdown';
 import { useAuth } from '../../hooks/useAuth';
@@ -20,7 +20,8 @@ const CVIcon = ({ size = 16 }: { size?: number }) => (
 export const Navbar: React.FC = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
 
   const graduateLinks = [
@@ -116,6 +117,12 @@ export const Navbar: React.FC = () => {
                 {l.icon} {l.label}
               </Link>
             ))}
+            <div style={{borderTop:'1px solid rgba(148,163,184,0.15)',marginTop:'0.5rem',paddingTop:'0.5rem'}}>
+              <button onClick={() => { logout(); navigate('/login'); setOpen(false); }}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium w-full transition-all text-red-400 hover:bg-red-500/10">
+                <LogOut size={16} /> Sign Out
+              </button>
+            </div>
           </div>
         </div>
       )}
