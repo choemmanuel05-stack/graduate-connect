@@ -182,9 +182,6 @@ export const AIChatbot: React.FC = () => {
     if (open) { setUnread(0); inputRef.current?.focus(); }
   }, [open]);
 
-  // Only show when logged in — after all hooks
-  if (!user) return null;
-
   const send = useCallback((text?: string) => {
     const msg = (text || input).trim();
     if (!msg) return;
@@ -212,6 +209,9 @@ export const AIChatbot: React.FC = () => {
       if (!open) setUnread(u => u + 1);
     }, delay);
   }, [input, user, messages, open]);
+
+  // Only show when logged in — all hooks are above this line
+  if (!user) return null;
 
   const react = (id: string, type: 'up' | 'down') => {
     setMessages(p => p.map(m => m.id === id
