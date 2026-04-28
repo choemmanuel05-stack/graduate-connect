@@ -28,13 +28,11 @@ export const CVBuilderFAB: React.FC = () => {
   const [hovered, setHovered] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Only show for graduates (employers don't need a CV)
-  if (!user || user.role !== 'graduate') return null;
-
-  // Don't show on the CV Builder page itself
-  if (location.pathname === '/cv-builder') return null;
-
   const handleClick = () => navigate('/cv-builder');
+
+  // Only show for graduates, not on the CV Builder page itself
+  if (!user || user.role !== 'graduate') return null;
+  if (location.pathname === '/cv-builder') return null;
 
   return (
     <div style={{ position: 'fixed', bottom: '5.5rem', right: '1.5rem', zIndex: 999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
