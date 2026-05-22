@@ -26,7 +26,7 @@ const Footer: React.FC = () => (
         ))}
       </div>
       <p style={{ color: 'var(--text-faint)', fontSize: '0.75rem' }}>
-        © {new Date().getFullYear()} GraduateConnect. All rights reserved.
+        © {new Date().getFullYear()} GradLink. All rights reserved.
       </p>
     </div>
   </footer>

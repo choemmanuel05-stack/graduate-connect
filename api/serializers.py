@@ -47,6 +47,7 @@ class GraduateProfileSerializer(serializers.ModelSerializer):
     skills_list = serializers.SerializerMethodField()
     cv_url = serializers.SerializerMethodField()
     photo_url = serializers.SerializerMethodField()
+    profile_photo_url = serializers.SerializerMethodField()
 
     class Meta:
         model = GraduateProfile
@@ -54,8 +55,8 @@ class GraduateProfileSerializer(serializers.ModelSerializer):
             'id', 'email', 'full_name', 'phone', 'bio', 'university',
             'degree', 'field_of_study', 'graduation_year', 'gpa',
             'skills', 'skills_list', 'linkedin_url', 'github_url',
-            'portfolio_url', 'cv_url', 'photo_url', 'is_available',
-            'created_at',
+            'portfolio_url', 'profile_photo', 'cv_url', 'photo_url',
+            'profile_photo_url', 'is_available', 'created_at',
         ]
 
     def get_skills_list(self, obj):
@@ -72,6 +73,20 @@ class GraduateProfileSerializer(serializers.ModelSerializer):
             request = self.context.get('request')
             return request.build_absolute_uri(obj.profile_photo.url) if request else obj.profile_photo.url
         return None
+
+    def get_profile_photo_url(self, obj):
+        request = self.context.get('request')
+        if obj.profile_photo and request:
+            return request.build_absolute_uri(obj.profile_photo.url)
+        return None
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and not request.user.is_staff:
+            data.pop('is_staff', None)
+            data.pop('is_superuser', None)
+        return data
 
 
 class EmployerProfileSerializer(serializers.ModelSerializer):
@@ -90,6 +105,23 @@ class EmployerProfileSerializer(serializers.ModelSerializer):
             request = self.context.get('request')
             return request.build_absolute_uri(obj.logo.url) if request else obj.logo.url
         return None
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and not request.user.is_staff:
+            data.pop('is_staff', None)
+            data.pop('is_superuser', None)
+        return data
+
+
+class PublicJobSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for the public jobs endpoint — no auth required."""
+    employer_name = serializers.CharField(source='employer.company_name', read_only=True)
+
+    class Meta:
+        model = Job
+        fields = ['id', 'title', 'employer_name', 'location', 'job_type', 'created_at']
 
 
 class JobSerializer(serializers.ModelSerializer):

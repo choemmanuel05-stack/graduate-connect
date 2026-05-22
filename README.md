@@ -1,6 +1,6 @@
-# GraduateConnect
+# GradLink
 
-A full-stack web platform connecting university graduates with job opportunities from companies and industries.
+A full-stack web platform connecting university graduates with job opportunities from companies and industries. Deployed at **gradlink.africa**.
 
 ## Tech Stack
 
@@ -8,6 +8,7 @@ A full-stack web platform connecting university graduates with job opportunities
 - **Database**: PostgreSQL (SQLite for local dev)
 - **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS
 - **Auth**: JWT (djangorestframework-simplejwt)
+- **Domain**: gradlink.africa
 
 ## Quick Start
 

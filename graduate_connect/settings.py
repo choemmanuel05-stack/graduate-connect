@@ -171,7 +171,12 @@ EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'GraduateConnect <noreply@graduateconnect.com>')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'GradLink <noreply@gradlink.africa>')
+
+# ── Production Domain (gradlink.africa) ──────────────────
+# In production, set these environment variables:
+#   ALLOWED_HOSTS=gradlink.africa,www.gradlink.africa,localhost
+#   CORS_ALLOWED_ORIGINS=https://gradlink.africa,https://www.gradlink.africa
 
 # ── Logging ───────────────────────────────────────────────
 LOGGING = {

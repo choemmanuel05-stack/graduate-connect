@@ -1,9 +1,36 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Job, JobApplication, EmployerProfile, GraduateProfile
-from .serializers import JobSerializer, JobApplicationSerializer
+from .serializers import JobSerializer, JobApplicationSerializer, PublicJobSerializer
+
+
+class PublicJobListView(APIView):
+    """
+    Publicly accessible endpoint that returns open jobs without requiring authentication.
+    Supports query params: status=open, ordering=-created_at, limit=6
+    Returns fields: id, title, employer_name, location, job_type, created_at
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        jobs = Job.objects.filter(status='open').select_related('employer').order_by('-created_at')
+
+        # Support explicit status filter (only 'open' is meaningful for public view)
+        status_param = request.query_params.get('status', 'open')
+        if status_param:
+            jobs = jobs.filter(status=status_param)
+
+        # Support limit param (default 6)
+        try:
+            limit = int(request.query_params.get('limit', 6))
+        except (ValueError, TypeError):
+            limit = 6
+        jobs = jobs[:limit]
+
+        serializer = PublicJobSerializer(jobs, many=True)
+        return Response({'results': serializer.data, 'count': len(serializer.data)})
 
 
 class JobListView(APIView):

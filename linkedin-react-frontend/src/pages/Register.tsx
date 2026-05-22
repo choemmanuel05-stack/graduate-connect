@@ -98,7 +98,7 @@ const Register: React.FC = () => {
 
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Create your account</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-          Join graduates and employers on GraduateConnect
+          Join graduates and employers on GradLink
         </p>
 
         {errors.submit && (

@@ -96,13 +96,13 @@ const TermsOfUse: React.FC = () => {
         </Section>
 
         <Section title="10. Contact">
-          <p>For questions about these Terms, contact us at: <a href="mailto:legal@graduateconnect.com" style={{ color: '#60A5FA' }}>legal@graduateconnect.com</a></p>
+          <p>For questions about these Terms, contact us at: <a href="mailto:legal@gradlink.africa" style={{ color: '#60A5FA' }}>legal@gradlink.africa</a></p>
         </Section>
       </div>
 
       {/* Footer */}
       <div style={{ borderTop: '1px solid rgba(148,163,184,0.12)', padding: '1.5rem', textAlign: 'center', color: '#94A3B8', fontSize: '0.8rem' }}>
-        © {new Date().getFullYear()} GraduateConnect. All rights reserved.
+        © {new Date().getFullYear()} GradLink. All rights reserved.
       </div>
     </div>
   );

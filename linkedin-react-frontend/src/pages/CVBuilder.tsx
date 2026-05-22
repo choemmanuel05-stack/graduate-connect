@@ -25,7 +25,16 @@ const STEPS = [
   {id:'extras',   label:'Extras',    icon:Award},
   {id:'design',   label:'Design',    icon:Palette},
 ];
-const SKILL_SUGGESTIONS = ['Python','JavaScript','TypeScript','React','Node.js','Django','SQL','Git','Docker','AWS','Machine Learning','Data Analysis','Communication','Leadership','Agile','Java','C++','PHP','Vue.js','Figma'];
+const SKILL_CATEGORIES: Record<string, string[]> = {
+  'Technology': ['Python','JavaScript','TypeScript','React','Node.js','Django','SQL','Git','Docker','AWS','Machine Learning','Data Analysis','Java','C++','PHP','Vue.js','Figma','REST APIs','Linux','Cybersecurity'],
+  'Business & Management': ['Project Management','Strategic Planning','Financial Analysis','Marketing','Sales','Business Development','Negotiation','Budgeting','Risk Management','Supply Chain','CRM','Excel','PowerPoint','Accounting','Auditing'],
+  'Healthcare': ['Patient Care','Clinical Assessment','Medical Records','Pharmacology','First Aid','Public Health','Epidemiology','Laboratory Skills','Nursing','Health Education','Medical Research','Anatomy','Physiology'],
+  'Law & Legal': ['Legal Research','Contract Drafting','Litigation','Corporate Law','Criminal Law','Legal Writing','Case Management','Compliance','Mediation','Arbitration','Intellectual Property','Human Rights Law'],
+  'Engineering': ['AutoCAD','SolidWorks','Circuit Design','Structural Analysis','MATLAB','PLC Programming','Quality Control','Civil Engineering','Mechanical Design','Electrical Systems','Project Planning','Site Management'],
+  'Arts & Design': ['Graphic Design','Adobe Photoshop','Illustrator','InDesign','UI/UX Design','Video Editing','Photography','Branding','Typography','Motion Graphics','Copywriting','Content Creation'],
+  'Education': ['Curriculum Development','Lesson Planning','Classroom Management','Student Assessment','E-Learning','Tutoring','Educational Research','Special Needs Education','Mentoring','Training & Development'],
+  'Soft Skills': ['Communication','Leadership','Teamwork','Problem Solving','Critical Thinking','Adaptability','Time Management','Emotional Intelligence','Conflict Resolution','Public Speaking','Creativity','Agile'],
+};
 const LANG_LEVELS = ['Native','Fluent','Advanced','Intermediate','Basic'];
 
 /* ── Helper sub-components ──────────────────────────────────────────────── */
@@ -68,6 +77,7 @@ const CVBuilder:React.FC = () => {
   const [generating, setGenerating] = useState(false);
   const [saved, setSaved] = useState(false);
   const [skillInput, setSkillInput] = useState('');
+  const [activeSkillCategory, setActiveSkillCategory] = useState<string>('Technology');
 
   const [cv, setCv] = useState<CVData>({
     fullName: user?.fullName || '', title: '', email: user?.email || '',
@@ -128,7 +138,7 @@ const CVBuilder:React.FC = () => {
   };
 
   // ── Work helpers ───────────────────────────────────────────────────────
-  const addWork = () => setWork(p=>[...p,{id:uid(),company:'',role:'',location:'',start:'',end:'',current:false,description:''}]);
+  const addWork = () => setWork(p=>[{id:uid(),company:'',role:'',location:'',start:'',end:'',current:false,description:''},...p]);
   const removeWork = (id:string) => setWork(p=>p.filter(e=>e.id!==id));
   const setWorkField = (id:string,k:keyof WorkExp,v:any) => setWork(p=>p.map(e=>e.id===id?{...e,[k]:v}:e));
 
@@ -150,14 +160,69 @@ const CVBuilder:React.FC = () => {
   // ── AI Summary Generator ───────────────────────────────────────────────
   const generateSummary = () => {
     setGenerating(true);
-    setTimeout(()=>{
-      const skills = cv.skills.slice(0,4).join(', ') || 'various technical areas';
-      const latestEdu = edu.find(e=>e.institution);
-      const latestWork = work.find(e=>e.company);
-      const summary = `${latestEdu?.degree||'Graduate'} in ${latestEdu?.field||'a relevant field'} from ${latestEdu?.institution||'university'}, with strong expertise in ${skills}. ${latestWork?.role?`Previously served as ${latestWork.role} at ${latestWork.company}, gaining valuable industry experience. `:''}Passionate about delivering high-quality solutions and continuously growing professionally. Seeking opportunities to contribute meaningfully to innovative teams and challenging projects.`;
-      setCvField('summary', summary);
+    setTimeout(() => {
+      const latestEdu = edu.find(e => e.institution);
+      const latestWork = work.find(e => e.company);
+      const skillList = cv.skills.slice(0, 5).join(', ') || 'a range of professional skills';
+      const field = (latestEdu?.field || '').toLowerCase();
+      const degree = latestEdu?.degree || 'Graduate';
+      const institution = latestEdu?.institution || 'university';
+      const gpa = parseFloat(latestEdu?.gpa || '0');
+      const hasHighGPA = gpa >= 3.5;
+
+      // Field-specific professional openers
+      const fieldOpeners: Record<string, string> = {
+        'law': 'Qualified legal professional',
+        'legal': 'Qualified legal professional',
+        'medicine': 'Dedicated healthcare professional',
+        'medical': 'Dedicated healthcare professional',
+        'nursing': 'Compassionate nursing professional',
+        'pharmacy': 'Qualified pharmacy professional',
+        'engineering': 'Results-driven engineer',
+        'computer science': 'Software development professional',
+        'information technology': 'IT professional',
+        'software': 'Software development professional',
+        'business': 'Business and management professional',
+        'management': 'Business and management professional',
+        'accounting': 'Finance and accounting professional',
+        'finance': 'Finance and accounting professional',
+        'economics': 'Economics and finance professional',
+        'education': 'Passionate educator',
+        'teaching': 'Dedicated teaching professional',
+        'design': 'Creative design professional',
+        'arts': 'Creative arts professional',
+        'communication': 'Communications professional',
+        'journalism': 'Media and journalism professional',
+        'agriculture': 'Agricultural science professional',
+        'biology': 'Life sciences professional',
+        'chemistry': 'Chemistry professional',
+        'physics': 'Physical sciences professional',
+        'mathematics': 'Mathematics and analytics professional',
+        'statistics': 'Data and statistics professional',
+        'psychology': 'Psychology professional',
+        'sociology': 'Social sciences professional',
+        'political': 'Political science professional',
+        'public health': 'Public health professional',
+        'environmental': 'Environmental science professional',
+      };
+
+      const opener = Object.entries(fieldOpeners).find(([k]) => field.includes(k))?.[1]
+        || `${degree} graduate`;
+
+      // Sentence 1: Identity + education (+ GPA distinction if applicable)
+      const s1 = `${opener} holding a ${degree} in ${latestEdu?.field || 'a relevant discipline'} from ${institution}${hasHighGPA ? `, graduating with a GPA of ${gpa.toFixed(2)}` : ''}.`;
+
+      // Sentence 2: Experience + skills (or academic focus if no work experience)
+      const s2 = latestWork?.company
+        ? `Brings hands-on experience from serving as ${latestWork.role} at ${latestWork.company}, with demonstrated proficiency in ${skillList}.`
+        : `Equipped with strong academic grounding and practical skills in ${skillList}.`;
+
+      // Sentence 3: Career objective
+      const s3 = `Seeking a challenging role where these competencies can drive meaningful impact and support organisational growth.`;
+
+      setCvField('summary', `${s1} ${s2} ${s3}`);
       setGenerating(false);
-    },1400);
+    }, 1200);
   };
 
   // ── Export ─────────────────────────────────────────────────────────────
@@ -295,8 +360,14 @@ const CVBuilder:React.FC = () => {
           {/* Suggestions */}
           <div>
             <p style={{fontSize:'0.72rem',color:'#64748B',marginBottom:'0.5rem'}}>Suggestions — click to add:</p>
+            {/* Category tabs */}
+            <div style={{display:'flex',flexWrap:'wrap',gap:'0.4rem',marginBottom:'0.75rem'}}>
+              {Object.keys(SKILL_CATEGORIES).map(cat=>(
+                <button key={cat} onClick={()=>setActiveSkillCategory(cat)} style={{background:activeSkillCategory===cat?'#2563EB':'#263348',color:activeSkillCategory===cat?'#fff':'#94A3B8',border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:600,padding:'0.25rem 0.75rem',borderRadius:99}}>{cat}</button>
+              ))}
+            </div>
             <div style={{display:'flex',flexWrap:'wrap',gap:'0.4rem'}}>
-              {SKILL_SUGGESTIONS.filter(s=>!cv.skills.includes(s)).map(s=>(
+              {SKILL_CATEGORIES[activeSkillCategory].filter(s=>!cv.skills.includes(s)).map(s=>(
                 <button key={s} onClick={()=>addSkill(s)} style={{padding:'0.2rem 0.6rem',background:'#263348',border:'1px solid rgba(148,163,184,0.2)',borderRadius:99,fontSize:'0.75rem',color:'#94A3B8',cursor:'pointer'}}>{s}</button>
               ))}
             </div>
@@ -518,9 +589,31 @@ const CVBuilder:React.FC = () => {
           const active = i===step;
           const done = i<step;
           return (
-            <button key={s.id} onClick={()=>setStep(i)} style={{display:'flex',alignItems:'center',gap:'0.4rem',padding:'0.5rem 0.875rem',borderRadius:8,border:`1px solid ${active?'#60A5FA':done?'rgba(52,211,153,0.3)':'rgba(148,163,184,0.15)'}`,background:active?'rgba(37,99,235,0.15)':done?'rgba(52,211,153,0.08)':'transparent',color:active?'#93C5FD':done?'#34D399':'#64748B',fontSize:'0.78rem',fontWeight:active?700:500,cursor:'pointer',whiteSpace:'nowrap',transition:'all 150ms'}}>
-              {done?<Check size={13}/>:<Icon size={13}/>}
+            <button key={s.id} onClick={()=>setStep(i)}
+              title={s.label}
+              aria-label={`${s.label}${done?' (completed)':active?' (current)':''}`}
+              aria-current={active?'step':undefined}
+              style={{
+                display:'flex',alignItems:'center',gap:'0.4rem',
+                padding:'0.5rem 0.875rem',borderRadius:8,
+                border:`1px solid ${active?'#1D4ED8':done?'rgba(5,150,105,0.35)':'rgba(148,163,184,0.15)'}`,
+                background:active?'rgba(29,78,216,0.15)':done?'rgba(5,150,105,0.08)':'transparent',
+                color:active?'#93C5FD':done?'#34D399':'#64748B',
+                fontSize:'0.78rem',fontWeight:active?700:500,
+                cursor:'pointer',whiteSpace:'nowrap',transition:'all 150ms',
+                position:'relative',
+              }}>
+              {/* Completed checkmark or step icon */}
+              {done ? <Check size={13} style={{color:'#34D399'}}/> : <Icon size={13}/>}
+              {/* Step name — always visible on desktop, hidden on mobile */}
               <span className="hidden sm:inline">{s.label}</span>
+              {/* Active step underline indicator */}
+              {active && (
+                <span style={{
+                  position:'absolute',bottom:-1,left:'50%',transform:'translateX(-50%)',
+                  width:'60%',height:2,borderRadius:2,background:'#1D4ED8',
+                }}/>
+              )}
             </button>
           );
         })}
@@ -630,7 +723,7 @@ const ClassicCV:React.FC<{cv:CVData;work:WorkExp[];edu:Education[];certs:Cert[];
         <div key={c.id} style={{display:'flex',justifyContent:'space-between',marginBottom:'0.3rem'}}><span style={{fontSize:'0.78rem',fontWeight:600}}>{c.name}</span><span style={{fontSize:'0.72rem',color:'#6B7280'}}>{c.issuer}{c.date?` · ${c.date}`:''}</span></div>
       ))}</Sec>}
       {langs.some(l=>l.name) && <Sec title="Languages" accent={accent}><div style={{display:'flex',flexWrap:'wrap',gap:'1rem'}}>{langs.filter(l=>l.name).map(l=><span key={l.id} style={{fontSize:'0.78rem'}}><strong>{l.name}</strong>{l.level?` — ${l.level}`:''}</span>)}</div></Sec>}
-      <div style={{marginTop:'1.5rem',paddingTop:'0.5rem',borderTop:'1px solid #E5E7EB',textAlign:'center'}}><span style={{fontSize:'0.6rem',color:'#9CA3AF'}}>Built with GraduateConnect</span></div>
+      <div style={{marginTop:'1.5rem',paddingTop:'0.5rem',borderTop:'1px solid #E5E7EB',textAlign:'center'}}><span style={{fontSize:'0.6rem',color:'#9CA3AF'}}>Built with GradLink</span></div>
     </div>
   </div>
 );

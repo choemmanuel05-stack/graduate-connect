@@ -43,4 +43,17 @@ export const userService = {
     const response = await api.get<User[]>('/users/suggested');
     return response.data;
   },
+
+  /**
+   * Upload a profile photo for the current graduate user
+   * @param file - Image file to upload
+   */
+  uploadProfilePhoto: async (file: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append('profile_photo', file);
+    const response = await api.patch('/graduate/profile/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
 };

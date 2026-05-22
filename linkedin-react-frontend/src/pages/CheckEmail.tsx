@@ -38,7 +38,7 @@ const CheckEmail: React.FC = () => {
         <div style={{ background: 'var(--surface-2)', borderRadius: 12, padding: '1.25rem', marginBottom: '1.75rem', textAlign: 'left' }}>
           {[
             { step: '1', text: 'Open your email inbox' },
-            { step: '2', text: 'Find the email from GraduateConnect' },
+            { step: '2', text: 'Find the email from GradLink' },
             { step: '3', text: 'Click "Verify Email Address"' },
             { step: '4', text: 'You\'ll be redirected to login' },
           ].map(item => (

@@ -5,22 +5,44 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════
-   GRADUATE CONNECT — Premium Design System
-   Palette: Deep Navy · Electric Blue · Emerald · Slate
+   GRADLINK — Premium Design System
+   Palette: Royal Blue · Emerald · Slate · Near-White
 ═══════════════════════════════════════════════════════ */
 
 :root {
-  /* Core brand */
-  --brand:        #60A5FA;
-  --brand-light:  #93C5FD;
-  --brand-dark:   #3B82F6;
-  --brand-glow:   rgba(96,165,250,0.25);
-  --accent:       #10B981;
-  --accent-light: #34D399;
-  --danger:       #EF4444;
-  --warning:      #F59E0B;
+  /* ── GradLink Brand Colors ─────────────────────────── */
+  --color-primary:       #1D4ED8;   /* Royal Blue — primary actions */
+  --color-primary-light: #EFF6FF;   /* Hover backgrounds */
+  --color-primary-hover: #1E40AF;   /* Darker hover */
+  --color-success:       #059669;   /* Emerald — verified, success */
+  --color-warning:       #D97706;   /* Amber — pending, warnings */
+  --color-danger:        #DC2626;   /* Red — errors, destructive */
 
-  /* Surface palette — deep navy theme */
+  /* ── Light Theme (authenticated app) ──────────────── */
+  --color-bg:            #F8FAFC;   /* Near-white page background */
+  --color-surface:       #FFFFFF;   /* Card backgrounds */
+  --color-text-primary:  #0F172A;   /* Slate 950 — headings, body */
+  --color-text-secondary:#475569;   /* Slate 600 — labels */
+  --color-text-muted:    #94A3B8;   /* Slate 400 — hints */
+  --color-border:        #E2E8F0;   /* Slate 200 — dividers */
+  --color-border-focus:  #1D4ED8;   /* Focus ring */
+
+  /* ── Dark Theme (login/landing pages) ─────────────── */
+  --color-dark-bg:       #0F172A;   /* Slate 950 */
+  --color-dark-surface:  #1E293B;   /* Slate 800 */
+  --color-dark-text:     #F1F5F9;   /* Slate 100 */
+
+  /* Core brand (legacy aliases — keep for backward compat) */
+  --brand:        #1D4ED8;
+  --brand-light:  #60A5FA;
+  --brand-dark:   #1E40AF;
+  --brand-glow:   rgba(29,78,216,0.25);
+  --accent:       #059669;
+  --accent-light: #34D399;
+  --danger:       #DC2626;
+  --warning:      #D97706;
+
+  /* Surface palette — deep navy theme (dark pages) */
   --bg:           #0F172A;
   --bg-2:         #1E293B;
   --bg-3:         #263348;
@@ -37,16 +59,15 @@
   --text-faint:     #94A3B8;
   --text-inverse:   #0F172A;
   --text-dim:       #94A3B8;
-  --text-inverse:   #0F172A;
 
   /* Shadows */
   --s1: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
   --s2: 0 4px 12px rgba(0,0,0,0.35), 0 2px 4px rgba(0,0,0,0.2);
   --s3: 0 10px 30px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.25);
   --s4: 0 20px 60px rgba(0,0,0,0.5), 0 8px 16px rgba(0,0,0,0.3);
-  --s-brand: 0 4px 20px rgba(37,99,235,0.4);
-  --s-brand-lg: 0 8px 40px rgba(37,99,235,0.5);
-  --s-accent: 0 4px 20px rgba(16,185,129,0.35);
+  --s-brand: 0 4px 20px rgba(29,78,216,0.4);
+  --s-brand-lg: 0 8px 40px rgba(29,78,216,0.5);
+  --s-accent: 0 4px 20px rgba(5,150,105,0.35);
 
   /* Radius */
   --r-sm:   8px;

@@ -1,14 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { validateFullName, validatePassword } from '../utils/validators';
 import api from '../services/api';
-import { Lock, User, CheckCircle } from 'lucide-react';
+import { userService } from '../services/userService';
+import { Lock, User, CheckCircle, Camera } from 'lucide-react';
 
 const Err: React.FC<{ msg?: string }> = ({ msg }) =>
   msg ? <p style={{ fontSize: '0.72rem', color: '#FCA5A5', marginTop: '0.25rem' }}>⚠ {msg}</p> : null;
 
 const Settings: React.FC = () => {
   const { user, updateProfile } = useAuth();
+
+  // Photo upload section
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoMsg, setPhotoMsg] = useState('');
+  const [photoError, setPhotoError] = useState('');
+
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setPhotoMsg('');
+    setPhotoError('');
+
+    if (file.size > MAX_SIZE) {
+      setPhotoError('Image must be under 5 MB');
+      e.target.value = '';
+      return;
+    }
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setPhotoError('Please upload a JPEG, PNG, WebP, or GIF image');
+      e.target.value = '';
+      return;
+    }
+
+    setPhotoUploading(true);
+    try {
+      const result = await userService.uploadProfilePhoto(file);
+      await updateProfile(result);
+      setPhotoMsg('Profile photo updated successfully!');
+    } catch {
+      setPhotoError('Failed to upload photo. Please try again.');
+    } finally {
+      setPhotoUploading(false);
+      e.target.value = '';
+    }
+  };
 
   // Profile section
   const [profileData, setProfileData] = useState({
@@ -86,6 +127,52 @@ const Settings: React.FC = () => {
           <User size={16} style={{ color: '#60A5FA' }} />
           <h2 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Profile Information</h2>
         </div>
+
+        {/* Photo upload */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem' }}>
+          <div style={{ position: 'relative', width: 72, height: 72, flexShrink: 0 }}>
+            {user?.profile?.profile_photo_url ? (
+              <img
+                src={user.profile.profile_photo_url}
+                alt="Profile"
+                style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border-2)' }}
+              />
+            ) : (
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,#2563EB,#60A5FA)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', color: '#fff', fontWeight: 700 }}>
+                {user?.fullName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}
+              </div>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handlePhotoChange}
+              style={{ display: 'none' }}
+              aria-label="Upload profile photo"
+            />
+            <label
+              onClick={() => !photoUploading && fileInputRef.current?.click()}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.45rem 0.875rem', background: 'var(--surface-2)', border: '1.5px solid var(--border-2)', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', cursor: photoUploading ? 'not-allowed' : 'pointer', opacity: photoUploading ? 0.7 : 1, userSelect: 'none' }}
+            >
+              <Camera size={14} />
+              {photoUploading ? 'Uploading…' : 'Change Photo'}
+            </label>
+            <p style={{ fontSize: '0.72rem', color: '#64748B', margin: 0 }}>JPEG, PNG, WebP or GIF · Max 5 MB</p>
+          </div>
+        </div>
+
+        {photoError && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.875rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, fontSize: '0.82rem', color: '#FCA5A5', marginBottom: '0.75rem' }}>
+            ⚠ {photoError}
+          </div>
+        )}
+        {photoMsg && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.875rem', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: 8, fontSize: '0.82rem', color: '#34D399', marginBottom: '0.75rem' }}>
+            <CheckCircle size={14} />{photoMsg}
+          </div>
+        )}
 
         <form onSubmit={handleProfileSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>

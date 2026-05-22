@@ -20,6 +20,17 @@ class EmployerProfileView(APIView):
         return Response(serializer.data)
 
     def put(self, request):
+        # Ownership check: if the request body includes a user_id that doesn't
+        # match the authenticated user and the user is not staff, reject with 403.
+        requested_user_id = request.data.get('user_id') or request.data.get('user')
+        if requested_user_id is not None:
+            try:
+                requested_user_id = int(requested_user_id)
+            except (ValueError, TypeError):
+                return Response({'error': 'Invalid user_id'}, status=status.HTTP_400_BAD_REQUEST)
+            if requested_user_id != request.user.pk and not request.user.is_staff:
+                return Response({'error': 'You do not have permission to edit this profile'}, status=status.HTTP_403_FORBIDDEN)
+
         try:
             profile = request.user.api_employer_profile
         except EmployerProfile.DoesNotExist:

@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
 import Logo from '../common/Logo';
 import { NotificationBell } from '../common/NotificationBell';
+import { FeedbackWidget } from '../common/FeedbackWidget';
 
 // Custom CV icon that looks like a native app icon
 const CVIcon = ({ size = 16 }: { size?: number }) => (
@@ -19,28 +20,30 @@ const CVIcon = ({ size = 16 }: { size?: number }) => (
 
 export const Navbar: React.FC = () => {
   const [open, setOpen] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
 
   const graduateLinks = [
-    { to: '/', label: 'Home', icon: <Home size={16} /> },
-    { to: '/jobs', label: 'Jobs', icon: <Briefcase size={16} /> },
-    { to: '/applications', label: 'Applications', icon: <FileText size={16} /> },
-    { to: '/interview-prep', label: 'Interview', icon: <MessageSquare size={16} /> },
+    { to: '/', label: 'Home', icon: <Home size={16} />, tour: 'home' },
+    { to: '/jobs', label: 'Find Jobs', icon: <Briefcase size={16} />, tour: 'jobs' },
+    { to: '/cv-builder', label: 'Build CV', icon: <FileText size={16} />, tour: 'cv-builder' },
+    { to: '/applications', label: 'Applications', icon: <FileText size={16} />, tour: 'applications' },
+    { to: '/interview-prep', label: 'Interview Prep', icon: <MessageSquare size={16} />, tour: 'interview' },
   ];
   const employerLinks = [
-    { to: '/', label: 'Home', icon: <Home size={16} /> },
-    { to: '/jobs', label: 'Jobs', icon: <Briefcase size={16} /> },
-    { to: '/graduates', label: 'Graduates', icon: <GraduationCap size={16} /> },
-    { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
+    { to: '/', label: 'Home', icon: <Home size={16} />, tour: 'home' },
+    { to: '/jobs', label: 'Job Listings', icon: <Briefcase size={16} />, tour: 'jobs' },
+    { to: '/graduates', label: 'Find Graduates', icon: <GraduationCap size={16} />, tour: 'graduates' },
+    { to: '/dashboard', label: 'My Dashboard', icon: <LayoutDashboard size={16} />, tour: 'dashboard' },
   ];
   const adminLinks = [
-    { to: '/', label: 'Home', icon: <Home size={16} /> },
-    { to: '/jobs', label: 'Jobs', icon: <Briefcase size={16} /> },
-    { to: '/graduates', label: 'Graduates', icon: <GraduationCap size={16} /> },
-    { to: '/admin', label: 'Admin', icon: <LayoutDashboard size={16} /> },
+    { to: '/', label: 'Home', icon: <Home size={16} />, tour: 'home' },
+    { to: '/jobs', label: 'All Jobs', icon: <Briefcase size={16} />, tour: 'jobs' },
+    { to: '/graduates', label: 'Graduates', icon: <GraduationCap size={16} />, tour: 'graduates' },
+    { to: '/admin', label: 'Admin Panel', icon: <LayoutDashboard size={16} />, tour: 'admin' },
   ];
   const links = user?.role === 'employer' ? employerLinks : user?.role === 'administrator' ? adminLinks : graduateLinks;
 
@@ -59,6 +62,7 @@ export const Navbar: React.FC = () => {
               <Link key={l.to} to={l.to}
                 className={`nav-link ${location.pathname === l.to ? 'active' : ''}`}
                 role="menuitem"
+                data-tour={l.tour}
                 aria-current={location.pathname === l.to ? 'page' : undefined}>
                 {l.icon}
                 {l.label}
@@ -68,6 +72,26 @@ export const Navbar: React.FC = () => {
 
           <div className="flex items-center gap-3">
             <div className="hidden md:block"><NotificationBell /></div>
+            {/* Feedback button — visible only to authenticated users */}
+            {user && (
+              <button
+                onClick={() => setShowFeedback(true)}
+                aria-label="Give feedback"
+                title="Feedback"
+                style={{
+                  width: 36, height: 36, borderRadius: 10,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: theme === 'light' ? 'rgba(15,23,42,0.08)' : 'rgba(255,255,255,0.08)',
+                  border: `1px solid ${theme === 'light' ? 'rgba(15,23,42,0.12)' : 'rgba(255,255,255,0.1)'}`,
+                  cursor: 'pointer', transition: 'all 150ms ease',
+                  color: theme === 'light' ? '#475569' : '#94A3B8',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = theme === 'light' ? 'rgba(15,23,42,0.14)' : 'rgba(255,255,255,0.14)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = theme === 'light' ? 'rgba(15,23,42,0.08)' : 'rgba(255,255,255,0.08)'; }}
+              >
+                <MessageSquare size={16} />
+              </button>
+            )}
             {/* Theme toggle */}
             <button
               onClick={toggle}
@@ -126,6 +150,9 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Feedback widget */}
+      {showFeedback && <FeedbackWidget onClose={() => setShowFeedback(false)} />}
     </>
   );
 };

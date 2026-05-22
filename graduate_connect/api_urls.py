@@ -3,8 +3,9 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from api.auth_views import RegisterView, LoginView, MeView
 from api.graduate_views import GraduateProfileView, GraduateListView, GraduateDetailView
 from api.employer_views import EmployerProfileView, EmployerListView
-from api.job_views import JobListCreateView, JobDetailView, JobApplicationView, MyApplicationsView
+from api.job_views import JobListCreateView, JobDetailView, JobApplicationView, MyApplicationsView, PublicJobListView
 from api.search_views import SearchView
+from api.feedback_views import FeedbackView
 
 urlpatterns = [
     # Auth
@@ -28,6 +29,12 @@ urlpatterns = [
     path('jobs/<int:pk>/apply/', JobApplicationView.as_view(), name='job-apply'),
     path('jobs/my-applications/', MyApplicationsView.as_view(), name='my-applications'),
 
+    # Public endpoints (no authentication required)
+    path('public/jobs/', PublicJobListView.as_view(), name='public-job-list'),
+
     # Search
     path('search/', SearchView.as_view(), name='search'),
+
+    # Feedback
+    path('feedback/', FeedbackView.as_view(), name='feedback'),
 ]

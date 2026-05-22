@@ -1,7 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { GraduationCap, Briefcase, Star, Users, FileText, MessageSquare, ArrowRight, CheckCircle } from 'lucide-react';
+import { GraduationCap, Briefcase, Star, Users, FileText, MessageSquare, ArrowRight, CheckCircle, MapPin } from 'lucide-react';
 import Logo from '../components/common/Logo';
+
+interface TrendingJob {
+  id: number;
+  title: string;
+  employer_name: string;
+  location: string;
+  job_type: string;
+  created_at: string;
+}
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 const features = [
   { icon: <Briefcase size={22} />, title: 'Smart Job Matching', desc: 'AI-powered matching scores your compatibility with every job based on your skills, GPA, and degree.' },
@@ -19,6 +30,26 @@ const steps = [
 ];
 
 const Landing: React.FC = () => {
+  const [trendingJobs, setTrendingJobs] = useState<TrendingJob[]>([]);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE}/public/jobs/?status=open&ordering=-created_at&limit=6`
+        );
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
+        // Handle both paginated (results array) and plain array responses
+        const jobs: TrendingJob[] = Array.isArray(data) ? data : (data.results ?? []);
+        setTrendingJobs(jobs);
+      } catch {
+        setTrendingJobs([]);
+      }
+    };
+    fetchJobs();
+  }, []);
+
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)', color: '#F1F5F9', fontFamily: 'inherit' }}>
 
@@ -57,6 +88,59 @@ const Landing: React.FC = () => {
             Sign In
           </Link>
         </div>
+      </section>
+
+      {/* Trending Jobs */}
+      <section style={{ maxWidth: 1100, margin: '0 auto', padding: '4rem 1.5rem 3rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(96,165,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#60A5FA' }}>
+            <Briefcase size={20} />
+          </div>
+          <h2 style={{ fontSize: 'clamp(1.4rem,3vw,1.875rem)', fontWeight: 800, margin: 0 }}>Trending Jobs</h2>
+        </div>
+        <p style={{ color: '#64748B', marginBottom: '2rem', fontSize: '0.95rem' }}>Latest opportunities from top employers</p>
+
+        {trendingJobs.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem 1.5rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(148,163,184,0.1)', borderRadius: 14, color: '#64748B', fontSize: '0.95rem' }}>
+            New opportunities are being added — check back soon.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+            {trendingJobs.map(job => (
+              <div
+                key={job.id}
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(148,163,184,0.1)', borderRadius: 14, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', transition: 'border-color 200ms' }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(96,165,250,0.3)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(148,163,184,0.1)')}
+              >
+                {/* Job title */}
+                <h3 style={{ fontWeight: 700, fontSize: '1rem', margin: 0, color: '#F1F5F9', lineHeight: 1.4 }}>{job.title}</h3>
+
+                {/* Employer name */}
+                <p style={{ margin: 0, color: '#94A3B8', fontSize: '0.875rem', fontWeight: 500 }}>{job.employer_name}</p>
+
+                {/* Location */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#64748B', fontSize: '0.8rem' }}>
+                  <MapPin size={13} style={{ flexShrink: 0 }} />
+                  <span>{job.location}</span>
+                </div>
+
+                {/* Job type badge */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid rgba(148,163,184,0.08)' }}>
+                  <span style={{ display: 'inline-block', padding: '0.2rem 0.65rem', borderRadius: 99, background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(96,165,250,0.2)', color: '#60A5FA', fontSize: '0.75rem', fontWeight: 600 }}>
+                    {job.job_type}
+                  </span>
+                  <Link
+                    to="/register"
+                    style={{ fontSize: '0.8rem', fontWeight: 600, color: '#60A5FA', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                  >
+                    Sign in to Apply <ArrowRight size={12} />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Stats */}
@@ -126,7 +210,7 @@ const Landing: React.FC = () => {
       {/* Footer */}
       <footer style={{ borderTop: '1px solid rgba(148,163,184,0.1)', padding: '2rem 1.5rem', textAlign: 'center', color: '#475569', fontSize: '0.8rem' }}>
         <Logo size="sm" />
-        <p style={{ marginTop: '0.75rem' }}>© {new Date().getFullYear()} GraduateConnect · CATUC Bamenda · Built to connect graduates with opportunities</p>
+        <p style={{ marginTop: '0.75rem' }}>© {new Date().getFullYear()} GradLink · CATUC Bamenda · Built to connect graduates with opportunities</p>
         <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', marginTop: '0.75rem' }}>
           <Link to="/terms" style={{ color: '#475569', textDecoration: 'none' }}>Terms</Link>
           <Link to="/privacy" style={{ color: '#475569', textDecoration: 'none' }}>Privacy</Link>

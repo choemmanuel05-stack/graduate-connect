@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useAuth } from './hooks/useAuth';
@@ -44,6 +44,21 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return user ? <>{children}</> : <Navigate to="/landing" />;
 };
 
+const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/check-email', '/verify-email', '/reset-password'];
+
+function GlobalWidgets() {
+  const location = useLocation();
+  const isAuthPage = AUTH_PATHS.some(path => location.pathname.startsWith(path));
+  if (isAuthPage) return null;
+  return (
+    <>
+      <AIChatbot />
+      <CVBuilderFAB />
+      <OnboardingWizard />
+    </>
+  );
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -76,9 +91,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Suspense>
-        <AIChatbot />
-        <CVBuilderFAB />
-        <OnboardingWizard />
+        <GlobalWidgets />
       </Router>
     </AuthProvider>
   </ThemeProvider>
