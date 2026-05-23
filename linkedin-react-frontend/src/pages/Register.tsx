@@ -6,9 +6,8 @@ import { Eye, EyeOff } from 'lucide-react';
 import { validateEmail, validatePassword, validateFullName } from '../utils/validators';
 
 const roles = [
-  { value: 'graduate',      emoji: '🎓', label: 'Graduate',  desc: 'Find opportunities' },
-  { value: 'employer',      emoji: '🏢', label: 'Employer',  desc: 'Hire top talent' },
-  { value: 'administrator', emoji: '⚙️', label: 'Admin',     desc: 'Manage platform' },
+  { value: 'graduate', emoji: '🎓', label: 'Graduate', desc: 'Find opportunities' },
+  { value: 'employer', emoji: '🏢', label: 'Employer', desc: 'Hire top talent' },
 ];
 
 // Inline error helper
@@ -177,7 +176,7 @@ const Register: React.FC = () => {
           {/* Role selector */}
           <div>
             <label className="field-label">I am a...</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
               {roles.map(r => (
                 <label key={r.value} style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.875rem 0.5rem',
