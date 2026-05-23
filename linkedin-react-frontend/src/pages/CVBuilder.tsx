@@ -384,7 +384,7 @@ const CVBuilder:React.FC = () => {
           {work.map((e,i)=>(
             <CardBlock key={e.id}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.75rem'}}>
-                <span style={{fontSize:'0.75rem',color:'#64748B',fontWeight:600}}>Position {i+1}</span>
+                <span style={{fontSize:'0.75rem',color:'#64748B',fontWeight:600}}>Position {work.length - i}</span>
                 {work.length>1 && <button onClick={()=>removeWork(e.id)} style={{background:'none',border:'none',cursor:'pointer',color:'#EF4444',display:'flex',alignItems:'center'}}><Trash2 size={14}/></button>}
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.625rem'}}>
@@ -416,7 +416,7 @@ const CVBuilder:React.FC = () => {
           {edu.map((e,i)=>(
             <CardBlock key={e.id}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.75rem'}}>
-                <span style={{fontSize:'0.75rem',color:'#64748B',fontWeight:600}}>Education {i+1}</span>
+                <span style={{fontSize:'0.75rem',color:'#64748B',fontWeight:600}}>Education {edu.length - i}</span>
                 {edu.length>1 && <button onClick={()=>removeEdu(e.id)} style={{background:'none',border:'none',cursor:'pointer',color:'#EF4444',display:'flex',alignItems:'center'}}><Trash2 size={14}/></button>}
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.625rem'}}>
