@@ -14,20 +14,21 @@ const Home: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 py-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-        {/* Left */}
-        <div className="hidden lg:flex lg:col-span-3 flex-col gap-4 sidebar-widget left-sidebar">
+        {/* Left — Profile widget */}
+        <div className="hidden lg:flex lg:col-span-2 flex-col gap-4 sidebar-widget left-sidebar">
           <ProfileWidget />
         </div>
 
-        {/* Feed */}
-        <div className="lg:col-span-6">
+        {/* Center — Trending Jobs (larger, prominent) */}
+        <div className="lg:col-span-7">
+          <TrendingWidget />
+        </div>
+
+        {/* Right — Feed / posts (smaller) */}
+        <div className="lg:col-span-3">
           <Feed />
         </div>
 
-        {/* Right */}
-        <div className="hidden lg:block lg:col-span-3">
-          <TrendingWidget />
-        </div>
       </div>
     </div>
   );

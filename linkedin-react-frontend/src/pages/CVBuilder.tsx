@@ -143,7 +143,7 @@ const CVBuilder:React.FC = () => {
   const setWorkField = (id:string,k:keyof WorkExp,v:any) => setWork(p=>p.map(e=>e.id===id?{...e,[k]:v}:e));
 
   // ── Education helpers ──────────────────────────────────────────────────
-  const addEdu = () => setEdu(p=>[...p,{id:uid(),institution:'',degree:'',field:'',start:'',end:'',gpa:'',honors:''}]);
+  const addEdu = () => setEdu(p=>[{id:uid(),institution:'',degree:'',field:'',start:'',end:'',gpa:'',honors:''},...p]);
   const removeEdu = (id:string) => setEdu(p=>p.filter(e=>e.id!==id));
   const setEduField = (id:string,k:keyof Education,v:string) => setEdu(p=>p.map(e=>e.id===id?{...e,[k]:v}:e));
 
