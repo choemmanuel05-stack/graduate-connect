@@ -71,7 +71,6 @@ const CVBuilder:React.FC = () => {
 
   // ── State ──────────────────────────────────────────────────────────────
   const [step, setStep] = useState(0);
-  const [mobileTab, setMobileTab] = useState<'edit'|'preview'>('edit');
   const [template, setTemplate] = useState<Template>('classic');
   const [accent, setAccent] = useState('#2563EB');
   const [generating, setGenerating] = useState(false);
@@ -647,7 +646,7 @@ const CVBuilder:React.FC = () => {
         </div>
 
         {/* Preview panel */}
-        <div style={{display: (mobileTab==='preview'||window.innerWidth>=768)?'block':'none'}}>
+        <div style={{display: 'block'}}>
           <div style={{position:'sticky',top:'5rem'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'0.625rem'}}>
               <span style={{fontSize:'0.72rem',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'0.06em'}}>Live Preview</span>
