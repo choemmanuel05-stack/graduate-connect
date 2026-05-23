@@ -537,16 +537,25 @@ const CVBuilder:React.FC = () => {
         </div>
 
         <div style={{display:'flex',gap:'0.625rem',alignItems:'center'}}>
-          {/* Mobile edit/preview toggle */}
-          <div style={{display:'flex',background:'#263348',borderRadius:8,padding:2}} className="md:hidden">
-            {(['edit','preview'] as const).map(t=>(
-              <button key={t} onClick={()=>setMobileTab(t)} style={{padding:'0.4rem 0.875rem',borderRadius:6,background:mobileTab===t?'#1E293B':'transparent',border:'none',color:mobileTab===t?'#F1F5F9':'#64748B',fontSize:'0.8rem',fontWeight:600,cursor:'pointer',textTransform:'capitalize'}}>{t}</button>
-            ))}
-          </div>
-
           {/* Save button */}
           <button onClick={save} style={{display:'flex',alignItems:'center',gap:'0.4rem',padding:'0.5rem 0.875rem',background:saved?'rgba(16,185,129,0.12)':'rgba(148,163,184,0.08)',border:`1px solid ${saved?'rgba(16,185,129,0.3)':'rgba(148,163,184,0.18)'}`,borderRadius:8,color:saved?'#34D399':'#94A3B8',fontSize:'0.82rem',fontWeight:600,cursor:'pointer',transition:'all 150ms'}}>
             {saved ? <><Check size={13}/>Saved</> : <><Save size={13}/>Save</>}
+          </button>
+
+          {/* Reset CV button */}
+          <button
+            onClick={() => {
+              if (window.confirm('Reset CV? This will clear all your saved CV data and start fresh.')) {
+                localStorage.removeItem('gc_cv');
+                window.location.reload();
+              }
+            }}
+            title="Clear saved CV data and start fresh"
+            style={{display:'flex',alignItems:'center',gap:'0.4rem',padding:'0.5rem 0.875rem',background:'rgba(220,38,38,0.08)',border:'1px solid rgba(220,38,38,0.2)',borderRadius:8,color:'#F87171',fontSize:'0.82rem',fontWeight:600,cursor:'pointer',transition:'all 150ms'}}
+            onMouseEnter={e=>{e.currentTarget.style.background='rgba(220,38,38,0.15)';}}
+            onMouseLeave={e=>{e.currentTarget.style.background='rgba(220,38,38,0.08)';}}
+          >
+            <X size={13}/>Reset
           </button>
 
           {/* Export dropdown */}
@@ -622,7 +631,7 @@ const CVBuilder:React.FC = () => {
       {/* Main layout: editor + preview */}
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1.25rem'}}>
         {/* Editor panel */}
-        <div style={{display: (mobileTab==='edit'||window.innerWidth>=768)?'block':'none'}}>
+        <div>
           <div style={{background:'#1E293B',border:'1px solid rgba(148,163,184,0.12)',borderRadius:14,padding:'1.25rem',minHeight:400}}>
             {renderStep()}
           </div>
