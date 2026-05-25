@@ -32,24 +32,23 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#F3F2EF] flex items-center justify-center px-4">
-          <div className="max-w-md w-full bg-white rounded-xl shadow-sm p-8 text-center">
-            <h1 className="text-2xl font-bold text-[#1C1C1C] mb-4">
-              Oops! Something went wrong
+        <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', fontFamily: 'sans-serif' }}>
+          <div style={{ maxWidth: 600, width: '100%', background: '#fee2e2', border: '2px solid #dc2626', borderRadius: 12, padding: '2rem' }}>
+            <h1 style={{ color: '#dc2626', fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>
+              App Error — Please Report This
             </h1>
-            <p className="text-[#6B7280] mb-6">
-              We're sorry for the inconvenience. Please try refreshing the page or return to the home page.
+            <p style={{ color: '#7f1d1d', marginBottom: '1rem', fontFamily: 'monospace', fontSize: '0.9rem', wordBreak: 'break-all' }}>
+              {this.state.error?.message || 'Unknown error'}
             </p>
-            {this.state.error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-left">
-                <p className="text-sm text-red-800 font-mono">
-                  {this.state.error.message}
-                </p>
-              </div>
-            )}
-            <Button onClick={this.handleReset} variant="primary">
+            <pre style={{ background: '#fca5a5', padding: '1rem', borderRadius: 8, fontSize: '0.75rem', overflow: 'auto', color: '#450a0a' }}>
+              {this.state.error?.stack?.slice(0, 500)}
+            </pre>
+            <button
+              onClick={this.handleReset}
+              style={{ marginTop: '1rem', padding: '0.75rem 1.5rem', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}
+            >
               Return to Home
-            </Button>
+            </button>
           </div>
         </div>
       );
