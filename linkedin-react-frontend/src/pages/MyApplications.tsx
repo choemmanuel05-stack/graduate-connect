@@ -10,6 +10,7 @@ interface Application {
   company_name: string;
   cover_letter: string;
   status: string;
+  match_score: number | null;
   applied_at: string;
 }
 
@@ -110,6 +111,13 @@ const MyApplications: React.FC = () => {
                     <p style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: '0.25rem' }}>
                       Applied {new Date(app.applied_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                     </p>
+                    {app.match_score !== null && app.match_score !== undefined && (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.4rem', padding: '0.2rem 0.6rem', borderRadius: 99, background: app.match_score >= 70 ? 'rgba(5,150,105,0.12)' : app.match_score >= 40 ? 'rgba(217,119,6,0.12)' : 'rgba(100,116,139,0.12)', border: `1px solid ${app.match_score >= 70 ? 'rgba(5,150,105,0.3)' : app.match_score >= 40 ? 'rgba(217,119,6,0.3)' : 'rgba(100,116,139,0.2)'}` }}>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: app.match_score >= 70 ? '#34D399' : app.match_score >= 40 ? '#FCD34D' : '#94A3B8' }}>
+                          {app.match_score}% match
+                        </span>
+                      </div>
+                    )}
                     {app.cover_letter && (
                       <p className="text-xs text-gray-500 mt-2 line-clamp-2 max-w-md">{app.cover_letter}</p>
                     )}

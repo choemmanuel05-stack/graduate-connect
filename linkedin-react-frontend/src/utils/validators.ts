@@ -1,21 +1,45 @@
 /**
- * Form validation utilities used across all pages.
- * These validate FORMAT and PLAUSIBILITY — not live existence.
+ * validators.ts
+ * -------------
+ * Strict client-side validation matching the backend rules in api/validators.py.
+ * NOTE: These are a first line of defence only — the backend always re-validates.
  */
 
-// ── Email ─────────────────────────────────────────────────────────────────────
-// RFC 5322 simplified: local@domain.tld
+// ── Patterns ──────────────────────────────────────────────────────────────────
 const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+const NAME_RE  = /^[a-zA-ZÀ-ÿ\s\-']+$/;
 
+const SQL_KEYWORDS = /\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|UNION|CREATE|TRUNCATE|EXEC|EXECUTE|CAST|CONVERT|DECLARE|FETCH|OPEN|CURSOR)\b/i;
+const HTML_PATTERN = /[<>]|javascript\s*:|on\w+\s*=/i;
+
+const COMMON_PASSWORDS = new Set([
+  'password', 'password1', 'password1!', '12345678', '123456789',
+  'welcome123!', 'admin123!', 'qwerty123!', 'letmein1!', 'iloveyou1!',
+]);
+
+// ── Email ─────────────────────────────────────────────────────────────────────
 export function validateEmail(email: string): string {
   const v = email.trim();
-  if (!v) return 'Email is required';
-  if (!EMAIL_RE.test(v)) return 'Enter a valid email address (e.g. name@example.com)';
-  // Reject obviously fake domains
-  const domain = v.split('@')[1]?.toLowerCase();
-  if (domain && ['test.com', 'fake.com', 'example.com', 'dummy.com', 'abc.com', 'xyz.com'].includes(domain)) {
-    return 'Please use a real email address';
+  if (!v) return 'Email address is required';
+  if (v.length > 254) return 'Email address is too long';
+  if (!EMAIL_RE.test(v)) return 'Enter a valid email address (e.g. name@gmail.com)';
+  // Gmail-only during pilot phase (spec §3.6.1)
+  if (!v.toLowerCase().endsWith('@gmail.com')) {
+    return 'Only Gmail addresses (@gmail.com) are accepted during the pilot phase';
   }
+  return '';
+}
+
+// ── Name (first name or surname) ──────────────────────────────────────────────
+export function validateName(value: string, label = 'Name'): string {
+  const v = value.trim();
+  if (!v) return `${label} is required`;
+  if (v.length < 2) return `${label} must be at least 2 characters`;
+  if (v.length > 75) return `${label} must not exceed 75 characters`;
+  if (SQL_KEYWORDS.test(v)) return `${label} contains invalid content`;
+  if (HTML_PATTERN.test(v)) return `${label} contains invalid characters`;
+  if (!NAME_RE.test(v))
+    return `${label} may only contain letters, spaces, hyphens, and apostrophes`;
   return '';
 }
 
@@ -23,22 +47,47 @@ export function validateEmail(email: string): string {
 export function validatePassword(password: string): string {
   if (!password) return 'Password is required';
   if (password.length < 8) return 'Password must be at least 8 characters';
-  if (!/[A-Za-z]/.test(password)) return 'Password must contain at least one letter';
-  if (!/[0-9!@#$%^&*]/.test(password)) return 'Password must contain at least one number or symbol';
+  if (password.length > 128) return 'Password is too long (max 128 characters)';
+  if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+  if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+  if (!/[0-9]/.test(password)) return 'Password must contain at least one digit';
+  if (!/[!@#$%^&*()\-_=+\[\]{}|;:'",.<>?/\\`~]/.test(password))
+    return 'Password must contain at least one special character (e.g. ! @ # $ %)';
+  if (COMMON_PASSWORDS.has(password.toLowerCase()))
+    return 'This password is too common. Please choose a stronger one';
   return '';
 }
 
-// ── Full name ─────────────────────────────────────────────────────────────────
+/**
+ * Returns a password strength score 0–4 and a label.
+ * Used to drive the live strength indicator on the Register page.
+ */
+export function passwordStrength(password: string): { score: number; label: string; color: string } {
+  if (!password) return { score: 0, label: '', color: '' };
+  let score = 0;
+  if (password.length >= 8)  score++;
+  if (password.length >= 12) score++;
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[!@#$%^&*()\-_=+\[\]{}|;:'",.<>?/\\`~]/.test(password)) score++;
+
+  if (score <= 1) return { score: 1, label: 'Weak',      color: '#EF4444' };
+  if (score === 2) return { score: 2, label: 'Fair',      color: '#F97316' };
+  if (score === 3) return { score: 3, label: 'Good',      color: '#EAB308' };
+  if (score === 4) return { score: 4, label: 'Strong',    color: '#22C55E' };
+  return              { score: 5, label: 'Very Strong', color: '#10B981' };
+}
+
+// ── Full name (legacy — kept for backward compat) ─────────────────────────────
 export function validateFullName(name: string): string {
   const v = name.trim();
   if (!v) return 'Full name is required';
-  if (v.length < 3) return 'Name must be at least 3 characters';
-  if (v.length < 8) return 'Please enter your full name (at least 8 characters)';
-  if (!/^[a-zA-ZÀ-ÿ\s'\-\.]+$/.test(v)) return 'Name should only contain letters, spaces, hyphens, and apostrophes';
-  if (/^\d/.test(v)) return 'Name cannot start with a number';
-  // Must have at least two words (first + last name)
-  const words = v.split(/\s+/).filter(Boolean);
-  if (words.length < 2) return 'Please enter both your first and last name';
+  const parts = v.split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return 'Please enter both your first name and surname';
+  const firstErr = validateName(parts[0], 'First name');
+  if (firstErr) return firstErr;
+  const lastErr = validateName(parts.slice(1).join(' '), 'Surname');
+  if (lastErr) return lastErr;
   return '';
 }
 
@@ -46,9 +95,8 @@ export function validateFullName(name: string): string {
 const URL_RE = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)$/;
 
 export function validateUrl(url: string, fieldName = 'URL'): string {
-  if (!url) return ''; // URLs are usually optional
+  if (!url) return '';
   const v = url.trim();
-  // Auto-prefix if missing protocol
   const withProtocol = v.startsWith('http') ? v : `https://${v}`;
   if (!URL_RE.test(withProtocol)) return `Enter a valid ${fieldName} (e.g. https://example.com)`;
   return '';
@@ -73,11 +121,10 @@ export function validateGitHub(url: string): string {
 }
 
 // ── Phone ─────────────────────────────────────────────────────────────────────
-// Accepts international formats: +237 6XX XXX XXX, (237) 6XX-XXX-XXX, etc.
 const PHONE_RE = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{3,4}[-\s.]?[0-9]{3,4}$/;
 
 export function validatePhone(phone: string): string {
-  if (!phone) return ''; // Phone is usually optional
+  if (!phone) return '';
   const digits = phone.replace(/\D/g, '');
   if (digits.length < 8) return 'Phone number is too short';
   if (digits.length > 15) return 'Phone number is too long';
@@ -121,13 +168,13 @@ export function validateJobTitle(title: string): string {
   return '';
 }
 
-// ── Generic required text ─────────────────────────────────────────────────────
+// ── Generic required ──────────────────────────────────────────────────────────
 export function validateRequired(value: string, fieldName: string): string {
   if (!value.trim()) return `${fieldName} is required`;
   return '';
 }
 
-// ── Helper: auto-prefix URL with https:// ─────────────────────────────────────
+// ── URL normaliser ────────────────────────────────────────────────────────────
 export function normalizeUrl(url: string): string {
   if (!url) return '';
   const v = url.trim();

@@ -188,14 +188,24 @@
     <form method="post" novalidate>
       {% csrf_token %}
 
-      <!-- Full Name field -->
-      <div class="field">
-        <label for="full_name">Full Name</label>
-        <input type="text" name="full_name" id="full_name"
-               placeholder="e.g. John Doe"
-               value="{{ form.full_name.value|default:'' }}"
-               class="{% if form.full_name.errors %}is-invalid{% endif %}" />
-        {% if form.full_name.errors %}<p class="error-msg">{{ form.full_name.errors.0 }}</p>{% endif %}
+      <!-- First Name + Surname side by side -->
+      <div class="grid-2">
+        <div class="field">
+          <label for="first_name">First Name</label>
+          <input type="text" name="first_name" id="first_name"
+                 placeholder="e.g. John"
+                 value="{{ form.first_name.value|default:'' }}"
+                 class="{% if form.first_name.errors %}is-invalid{% endif %}" />
+          {% if form.first_name.errors %}<p class="error-msg">{{ form.first_name.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="field">
+          <label for="last_name">Surname</label>
+          <input type="text" name="last_name" id="last_name"
+                 placeholder="e.g. Doe"
+                 value="{{ form.last_name.value|default:'' }}"
+                 class="{% if form.last_name.errors %}is-invalid{% endif %}" />
+          {% if form.last_name.errors %}<p class="error-msg">{{ form.last_name.errors.0 }}</p>{% endif %}
+        </div>
       </div>
 
       <!-- Email field -->

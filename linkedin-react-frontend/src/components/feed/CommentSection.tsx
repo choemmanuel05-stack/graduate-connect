@@ -51,8 +51,10 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
           placeholder="Write a comment..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A66C2] focus:border-transparent resize-none"
-          rows={2}
+          style={{ padding: '0.75rem 1rem', fontSize: '0.9rem', lineHeight: 1.6, borderRadius: 10, border: '1.5px solid #E2E8F0', outline: 'none', resize: 'none', fontFamily: 'inherit', flex: 1 }}
+          rows={3}
+          onFocus={e => { e.target.style.borderColor = '#60A5FA'; e.target.style.boxShadow = '0 0 0 3px rgba(96,165,250,0.15)'; }}
+          onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = 'none'; }}
         />
         <Button
           onClick={handleSubmit}

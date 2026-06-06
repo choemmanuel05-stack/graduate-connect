@@ -39,7 +39,7 @@ const EmployerDashboard: React.FC = () => {
   const [expandedJob, setExpandedJob] = useState<number | null>(null);
   const [applications, setApplications] = useState<Record<number, Application[]>>({});
   const [toast, setToast] = useState('');
-  const [newJob, setNewJob] = useState({ title: '', description: '', requirements: '', location: '', job_type: 'full_time', salary_min: '', salary_max: '', required_skills: '', deadline: '' });
+  const [newJob, setNewJob] = useState({ title: '', description: '', requirements: '', location: '', job_type: 'full_time', salary_min: '', salary_max: '', required_skills: '', required_degree: '', required_gpa: '', deadline: '' });
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
@@ -87,13 +87,17 @@ const EmployerDashboard: React.FC = () => {
       const deadline = new Date(newJob.deadline);
       if (deadline <= new Date()) errs.deadline = 'Application deadline must be a future date';
     }
+    if (newJob.required_gpa) {
+      const gpa = parseFloat(newJob.required_gpa);
+      if (isNaN(gpa) || gpa < 0 || gpa > 4.0) errs.required_gpa = 'GPA must be between 0.0 and 4.0';
+    }
     if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
     setFormErrors({});
     try {
       await jobService.createJob(newJob);
       showToast('Job posted successfully!');
       setShowForm(false);
-      setNewJob({ title: '', description: '', requirements: '', location: '', job_type: 'full_time', salary_min: '', salary_max: '', required_skills: '', deadline: '' });
+      setNewJob({ title: '', description: '', requirements: '', location: '', job_type: 'full_time', salary_min: '', salary_max: '', required_skills: '', required_degree: '', required_gpa: '', deadline: '' });
       loadJobs();
     } catch { showToast('Failed to post job.'); }
   };
@@ -179,6 +183,28 @@ const EmployerDashboard: React.FC = () => {
               value={newJob.salary_min} onChange={(n,v) => setNewJob(p=>({...p,[n]:v}))} />
             <JobField label="Max Salary (FCFA)" name="salary_max" type="number" placeholder="e.g. 400000"
               value={newJob.salary_max} onChange={(n,v) => setNewJob(p=>({...p,[n]:v}))} />
+            <div>
+              <label className="input-label">Required Degree</label>
+              <select value={newJob.required_degree}
+                onChange={e => setNewJob(p => ({ ...p, required_degree: e.target.value }))} className="input">
+                <option value="">Any / Not specified</option>
+                <option value="Bachelor">Bachelor</option>
+                <option value="Master">Master</option>
+                <option value="PhD">PhD</option>
+                <option value="HND">HND</option>
+                <option value="Diploma">Diploma</option>
+              </select>
+            </div>
+            <div>
+              <label className="input-label">Minimum GPA <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional, 0–4.0)</span></label>
+              <input type="number" min="0" max="4" step="0.1"
+                value={newJob.required_gpa}
+                placeholder="e.g. 3.0"
+                onChange={e => { setNewJob(p => ({ ...p, required_gpa: e.target.value })); setFormErrors(er => ({ ...er, required_gpa: '' })); }}
+                className="input"
+                style={formErrors.required_gpa ? { borderColor: 'rgba(239,68,68,0.6)' } : {}} />
+              {formErrors.required_gpa && <p style={{ fontSize: '0.72rem', color: '#FCA5A5', marginTop: '0.25rem' }}>⚠ {formErrors.required_gpa}</p>}
+            </div>
           </div>
           {formErrors.salary && <p style={{ fontSize: '0.72rem', color: '#FCA5A5', marginBottom: '0.75rem' }}>⚠ {formErrors.salary}</p>}
           <div className="mb-4">

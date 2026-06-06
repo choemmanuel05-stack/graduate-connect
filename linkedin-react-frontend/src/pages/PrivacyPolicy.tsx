@@ -108,7 +108,7 @@ const PrivacyPolicy: React.FC = () => {
             <li><strong style={{ color: '#E2E8F0' }}>Portability</strong> — Request your data in a machine-readable format.</li>
             <li><strong style={{ color: '#E2E8F0' }}>Objection</strong> — Object to certain types of data processing.</li>
           </ul>
-          <p style={{ marginTop: '0.75rem' }}>To exercise these rights, contact us at <a href="mailto:privacy@gradlink.africa" style={{ color: '#60A5FA' }}>privacy@gradlink.africa</a>.</p>
+          <p style={{ marginTop: '0.75rem' }}>To exercise these rights, contact us at <a href="mailto:privacy@graduate-connect.africa" style={{ color: '#60A5FA' }}>privacy@graduate-connect.africa</a>.</p>
         </Section>
 
         <Section title="7. Cookies">
@@ -116,7 +116,7 @@ const PrivacyPolicy: React.FC = () => {
         </Section>
 
         <Section title="8. Children's Privacy">
-          <p>GradLink is not intended for users under 18 years of age. We do not knowingly collect personal data from minors. If we discover that a minor has created an account, we will delete it promptly.</p>
+          <p>Graduate-Connect is not intended for users under 18 years of age. We do not knowingly collect personal data from minors. If we discover that a minor has created an account, we will delete it promptly.</p>
         </Section>
 
         <Section title="9. Changes to This Policy">
@@ -126,15 +126,15 @@ const PrivacyPolicy: React.FC = () => {
         <Section title="10. Contact Us">
           <p>For privacy-related inquiries or to exercise your rights:</p>
           <div style={{ marginTop: '0.75rem', background: 'rgba(15,23,42,0.5)', borderRadius: 12, padding: '1rem 1.25rem', border: '1px solid rgba(148,163,184,0.1)' }}>
-            <p><strong style={{ color: '#E2E8F0' }}>GradLink Privacy Team</strong></p>
-            <p>Email: <a href="mailto:privacy@gradlink.africa" style={{ color: '#60A5FA' }}>privacy@gradlink.africa</a></p>
+            <p><strong style={{ color: '#E2E8F0' }}>Graduate-Connect Privacy Team</strong></p>
+            <p>Email: <a href="mailto:privacy@graduate-connect.africa" style={{ color: '#60A5FA' }}>privacy@graduate-connect.africa</a></p>
             <p>Response time: Within 30 days of receiving your request.</p>
           </div>
         </Section>
       </div>
 
       <div style={{ borderTop: '1px solid rgba(148,163,184,0.12)', padding: '1.5rem', textAlign: 'center', color: '#94A3B8', fontSize: '0.8rem' }}>
-        © {new Date().getFullYear()} GradLink. All rights reserved.
+        © {new Date().getFullYear()} Graduate-Connect. All rights reserved.
       </div>
     </div>
   );

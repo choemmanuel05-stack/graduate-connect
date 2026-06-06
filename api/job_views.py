@@ -113,10 +113,15 @@ class JobApplyView(APIView):
         if JobApplication.objects.filter(job=job, graduate=graduate).exists():
             return Response({'error': 'Already applied'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Compute match score per spec Appendix B.1
+        from .matching import calculate_match_score
+        score = calculate_match_score(graduate, job)
+
         application = JobApplication.objects.create(
             job=job,
             graduate=graduate,
-            cover_letter=request.data.get('cover_letter', '')
+            cover_letter=request.data.get('cover_letter', ''),
+            match_score=score,
         )
         serializer = JobApplicationSerializer(application)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

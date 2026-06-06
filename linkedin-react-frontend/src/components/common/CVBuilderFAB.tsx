@@ -30,8 +30,8 @@ export const CVBuilderFAB: React.FC = () => {
 
   const handleClick = () => navigate('/cv-builder');
 
-  // Only show for graduates, not on the CV Builder page itself
-  if (!user || user.role !== 'graduate') return null;
+  // Show for graduates and employers, not on the CV Builder page itself
+  if (!user) return null;
   if (location.pathname === '/cv-builder') return null;
 
   return (

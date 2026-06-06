@@ -9,7 +9,7 @@ const steps = [
   {
     id: 'welcome',
     icon: '👋',
-    title: 'Welcome to GradLink!',
+    title: 'Welcome to Graduate-Connect!',
     desc: 'The platform connecting CATUC Bamenda graduates with top employers across Africa.',
     action: null,
   },
@@ -40,7 +40,7 @@ const employerSteps = [
   {
     id: 'welcome',
     icon: '👋',
-    title: 'Welcome to GradLink!',
+    title: 'Welcome to Graduate-Connect!',
     desc: 'Find qualified graduates from CATUC Bamenda and beyond. Post jobs, search candidates, and manage applications.',
     action: null,
   },

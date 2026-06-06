@@ -17,6 +17,13 @@ from .search_views import SearchView
 from .admin_views import AdminUserListView, AdminUserDetailView
 from .recommendation_views import RecommendedJobsView, RecommendedGraduatesView
 from .notification_views import NotificationListView, MarkNotificationsReadView
+from .follow_views import FollowView, FollowersListView, FollowingListView
+from .credential_views import (
+    CredentialUploadView,
+    AdminCredentialQueueView,
+    AdminCredentialVerifyView,
+    AdminCredentialRejectView,
+)
 
 urlpatterns = [
     # ── Auth ──────────────────────────────────────────────────────────────────
@@ -73,4 +80,15 @@ urlpatterns = [
 
     # ── Search ────────────────────────────────────────────────────────────────
     path('search/', SearchView.as_view()),
+
+    # ── Follow ────────────────────────────────────────────────────────────────
+    path('users/<int:user_id>/follow/', FollowView.as_view()),
+    path('users/<int:user_id>/followers/', FollowersListView.as_view()),
+    path('users/<int:user_id>/following/', FollowingListView.as_view()),
+
+    # ── Credentials ───────────────────────────────────────────────────────────
+    path('credentials/', CredentialUploadView.as_view()),
+    path('admin/credentials/', AdminCredentialQueueView.as_view()),
+    path('admin/credentials/<int:pk>/verify/', AdminCredentialVerifyView.as_view()),
+    path('admin/credentials/<int:pk>/reject/', AdminCredentialRejectView.as_view()),
 ]

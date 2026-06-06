@@ -30,12 +30,24 @@ const Login: React.FC = () => {
       await login(email.trim().toLowerCase(), password);
       navigate('/');
     } catch (err: any) {
-      // Check if the error is "email not verified"
-      if (err?.response?.data?.requires_verification) {
-        navigate(`/check-email?email=${encodeURIComponent(email.trim().toLowerCase())}&unverified=1`);
+      const data = err?.response?.data;
+      const status = err?.response?.status;
+
+      if (data?.requires_verification) {
+        // Account exists but email not verified — show a clear message with resend option
+        setErrors({
+          submit: `Your email address has not been verified yet. Please check your inbox for the verification link, or use the button below to resend it.`,
+          unverified_email: email.trim().toLowerCase(),
+        });
         return;
       }
-      setErrors({ submit: err?.response?.data?.error || 'Invalid email or password. Please try again.' });
+      if (status === 429) {
+        setErrors({ submit: data?.error || 'Too many login attempts. Please wait 15 minutes.' });
+      } else if (status === 401 || status === 400) {
+        setErrors({ submit: 'Invalid email or password. Please check your credentials and try again.' });
+      } else {
+        setErrors({ submit: 'Something went wrong. Please try again.' });
+      }
     } finally {
       setLoading(false);
     }
@@ -66,9 +78,38 @@ const Login: React.FC = () => {
           Sign in to your GraduateConnect account
         </p>
 
-        {errors.submit && (
+        {errors.submit && !errors.unverified_email && (
           <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1.25rem', color: '#FCA5A5', fontSize: '0.875rem', fontWeight: 500 }}>
             {errors.submit}
+          </div>
+        )}
+
+        {/* Unverified account — amber banner with resend option */}
+        {errors.unverified_email && (
+          <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)', borderRadius: '10px', padding: '0.875rem 1rem', marginBottom: '1.25rem' }}>
+            <p style={{ color: '#FCD34D', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+              Email not verified
+            </p>
+            <p style={{ color: '#FDE68A', fontSize: '0.8rem', lineHeight: 1.5, marginBottom: '0.75rem' }}>
+              Your account exists but your email address has not been verified yet. Please check your inbox for the verification link.
+            </p>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api';
+                  await fetch(`${BASE_URL}/auth/resend-verification/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: errors.unverified_email, frontend_url: window.location.origin }),
+                  });
+                  setErrors(p => ({ ...p, resent: 'true' }));
+                } catch { /* fail silently */ }
+              }}
+              style={{ padding: '0.4rem 0.875rem', background: 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.4)', color: '#FCD34D', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+            >
+              {errors.resent ? '✓ Verification email sent' : 'Resend Verification Email'}
+            </button>
           </div>
         )}
 

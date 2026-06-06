@@ -42,8 +42,8 @@ export const CreatePostBox: React.FC<CreatePostBoxProps> = ({ onPostCreated }) =
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="What's on your mind?"
-        style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: '0.9rem', color: '#1E293B', background: '#F8FAFC', resize: 'none', outline: 'none', fontFamily: 'inherit' }}
-        rows={3}
+        style={{ width: '100%', padding: '1rem 1.125rem', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: '0.975rem', color: '#1E293B', background: '#F8FAFC', resize: 'none', outline: 'none', fontFamily: 'inherit', lineHeight: 1.6 }}
+        rows={5}
         onFocus={e => { e.target.style.borderColor = '#60A5FA'; e.target.style.boxShadow = '0 0 0 3px rgba(96,165,250,0.15)'; }}
         onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = 'none'; }}
       />

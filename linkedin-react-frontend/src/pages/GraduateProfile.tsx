@@ -1,11 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Save, User, BookOpen, Briefcase, Link } from 'lucide-react';
+import { Upload, Save, User, BookOpen, Briefcase, Link, ShieldCheck, Clock, XCircle, CheckCircle, FileText } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import {
   validatePhone, validateUrl, validateLinkedIn, validateGitHub,
   validateGPA, validateGraduationYear, normalizeUrl,
 } from '../utils/validators';
+
+// ── Credential types ──────────────────────────────────────────────────────────
+interface Credential {
+  id: number;
+  file_url: string;
+  file_type: string;
+  status: 'pending' | 'verified' | 'rejected';
+  uploaded_at: string;
+  rejection_reason: string;
+}
+
+// ── Credential status badge ───────────────────────────────────────────────────
+const StatusBadge: React.FC<{ status: Credential['status'] }> = ({ status }) => {
+  const map = {
+    pending:  { icon: <Clock size={12} />,        cls: 'bg-yellow-100 text-yellow-800', label: 'Pending Review' },
+    verified: { icon: <CheckCircle size={12} />,  cls: 'bg-green-100 text-green-800',  label: 'Verified' },
+    rejected: { icon: <XCircle size={12} />,      cls: 'bg-red-100 text-red-800',      label: 'Rejected' },
+  };
+  const { icon, cls, label } = map[status];
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>
+      {icon} {label}
+    </span>
+  );
+};
 
 // Inline error helper
 const FieldErr: React.FC<{ msg?: string }> = ({ msg }) =>
@@ -21,7 +46,13 @@ const GraduateProfile: React.FC = () => {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
-  useEffect(() => { loadProfile(); }, []);
+  // ── Credential state ────────────────────────────────────────────────────────
+  const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [credFile, setCredFile] = useState<File | null>(null);
+  const [credUploading, setCredUploading] = useState(false);
+  const [credMessage, setCredMessage] = useState('');
+
+  useEffect(() => { loadProfile(); loadCredentials(); }, []);
 
   const loadProfile = async () => {
     try {
@@ -31,6 +62,34 @@ const GraduateProfile: React.FC = () => {
       setProfile({ full_name: user?.fullName || '', phone: '', bio: '', university: '', degree: '', field_of_study: '', graduation_year: '', gpa: '', skills: '', linkedin_url: '', github_url: '', portfolio_url: '', is_available: true });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCredentials = async () => {
+    try {
+      const res: any = await api.get('/credentials/');
+      setCredentials(res.results || []);
+    } catch {
+      setCredentials([]);
+    }
+  };
+
+  const handleCredentialUpload = async () => {
+    if (!credFile) { setCredMessage('Please select a file first.'); return; }
+    setCredUploading(true);
+    setCredMessage('');
+    try {
+      const formData = new FormData();
+      formData.append('file', credFile);
+      const res: any = await api.post('/credentials/', formData);
+      setCredentials(prev => [res, ...prev]);
+      setCredFile(null);
+      setCredMessage('Credential uploaded successfully. Pending admin review.');
+    } catch (err: any) {
+      const detail = err?.response?.data?.error || 'Upload failed. Please try again.';
+      setCredMessage(detail);
+    } finally {
+      setCredUploading(false);
     }
   };
 
@@ -241,6 +300,74 @@ const GraduateProfile: React.FC = () => {
             onChange={handleChange} className="w-4 h-4 text-blue-600" />
           <label htmlFor="available" className="text-sm text-gray-700">I am open to job opportunities</label>
         </div>
+
+        {/* ── Credentials ─────────────────────────────────────────────────── */}
+        <section className="mb-6 border-t border-gray-100 pt-6">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
+            <ShieldCheck size={14} /> Academic Credentials
+          </h2>
+          <p className="text-xs text-gray-400 mb-3">
+            Upload your degree certificate or transcript. An admin will review and add a verified badge to your profile.
+          </p>
+
+          {/* Upload area */}
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center mb-3">
+            <FileText size={28} className="mx-auto text-gray-300 mb-2" />
+            <label className="cursor-pointer inline-flex items-center gap-2 text-sm text-[#0A66C2] hover:underline">
+              <Upload size={14} /> Select credential file
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                className="hidden"
+                onChange={e => { setCredFile(e.target.files?.[0] || null); setCredMessage(''); }}
+              />
+            </label>
+            {credFile && <p className="text-xs text-green-600 mt-1">Selected: {credFile.name}</p>}
+            <p className="text-xs text-gray-400 mt-1">PDF, JPEG, or PNG — max 5 MB</p>
+          </div>
+
+          <button
+            onClick={handleCredentialUpload}
+            disabled={credUploading || !credFile}
+            className="flex items-center gap-2 bg-[#0A66C2] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 mb-3"
+          >
+            <Upload size={14} /> {credUploading ? 'Uploading...' : 'Upload Credential'}
+          </button>
+
+          {credMessage && (
+            <p className={`text-xs mb-3 ${credMessage.includes('success') ? 'text-green-600' : 'text-red-500'}`}>
+              {credMessage}
+            </p>
+          )}
+
+          {/* Existing credentials list */}
+          {credentials.length > 0 && (
+            <div className="space-y-2">
+              {credentials.map(c => (
+                <div key={c.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileText size={14} className="text-gray-400 flex-shrink-0" />
+                    <a href={c.file_url} target="_blank" rel="noreferrer"
+                      className="text-[#0A66C2] hover:underline truncate">
+                      Credential #{c.id}
+                    </a>
+                    <span className="text-gray-400 text-xs hidden sm:inline">
+                      {new Date(c.uploaded_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <StatusBadge status={c.status} />
+                    {c.status === 'rejected' && c.rejection_reason && (
+                      <span className="text-xs text-red-500 hidden sm:inline" title={c.rejection_reason}>
+                        — {c.rejection_reason.slice(0, 40)}{c.rejection_reason.length > 40 ? '…' : ''}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         <button onClick={handleSave} disabled={saving}
           className="w-full flex items-center justify-center gap-2 bg-[#0A66C2] text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50">

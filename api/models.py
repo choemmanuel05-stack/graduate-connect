@@ -66,6 +66,8 @@ class Job(models.Model):
     salary_min = models.IntegerField(null=True, blank=True)
     salary_max = models.IntegerField(null=True, blank=True)
     required_skills = models.TextField(blank=True, help_text='Comma-separated skills')
+    required_degree = models.CharField(max_length=200, blank=True, help_text='e.g. Bachelor, Master')
+    required_gpa = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
     created_at = models.DateTimeField(auto_now_add=True)
     deadline = models.DateField(null=True, blank=True)
@@ -87,6 +89,7 @@ class JobApplication(models.Model):
     graduate = models.ForeignKey(GraduateProfile, on_delete=models.CASCADE, related_name='applications')
     cover_letter = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    match_score = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
     applied_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -176,6 +179,48 @@ class PasswordResetToken(models.Model):
 
     def __str__(self):
         return f"Reset token for {self.user.email}"
+
+
+# ── Notification ─────────────────────────────────────────────────────────────
+class Notification(models.Model):
+    """Persistent in-app notification (spec §4 — application status updates)."""
+    TYPE_CHOICES = [
+        ('application', 'Application Update'),
+        ('system',      'System'),
+        ('job',         'Job Alert'),
+    ]
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications'
+    )
+    message = models.TextField()
+    notif_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='system')
+    read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.email}: {self.message[:60]}"
+
+
+# ── Follow ────────────────────────────────────────────────────────────────────
+class Follow(models.Model):
+    """A user following another user."""
+    follower = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='following'
+    )
+    following = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='followers'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'following')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.follower.email} → {self.following.email}"
 
 
 # ── Feedback ──────────────────────────────────────────────────────────────────

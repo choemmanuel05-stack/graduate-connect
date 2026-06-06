@@ -1,6 +1,6 @@
-# GradLink
+# Graduate-Connect
 
-A full-stack web platform connecting university graduates with job opportunities from companies and industries. Deployed at **gradlink.africa**.
+A full-stack web platform connecting university graduates with job opportunities from companies and industries.
 
 ## Tech Stack
 

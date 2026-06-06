@@ -54,4 +54,22 @@ export const postService = {
     const res: any = await api.post(`/posts/${postId}/comments/`, { content });
     return res;
   },
+
+  repostPost: async (postId: string): Promise<{ shares: number }> => {
+    try {
+      const res: any = await api.post(`/posts/${postId}/repost/`);
+      return { shares: res.shares ?? 0 };
+    } catch {
+      // Endpoint may not exist yet — optimistic update only
+      return { shares: 0 };
+    }
+  },
+
+  sendPost: async (postId: string, recipientId?: string): Promise<void> => {
+    try {
+      await api.post(`/posts/${postId}/send/`, { recipient_id: recipientId });
+    } catch {
+      // Endpoint may not exist yet — copy link fallback handled in UI
+    }
+  },
 };

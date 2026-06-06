@@ -1,42 +1,63 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import Logo from '../components/common/Logo';
 import { Eye, EyeOff } from 'lucide-react';
-import { validateEmail, validatePassword, validateFullName } from '../utils/validators';
+import { validateEmail, validatePassword, validateName, passwordStrength } from '../utils/validators';
 
-const roles = [
-  { value: 'graduate', emoji: '🎓', label: 'Graduate', desc: 'Find opportunities' },
-  { value: 'employer', emoji: '🏢', label: 'Employer', desc: 'Hire top talent' },
-];
-
-// Inline error helper
+// ── Inline error helper ───────────────────────────────────────────────────────
 const Err: React.FC<{ msg?: string }> = ({ msg }) =>
-  msg ? <p style={{ fontSize: '0.72rem', color: '#FCA5A5', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>⚠ {msg}</p> : null;
+  msg ? (
+    <p style={{ fontSize: '0.72rem', color: '#FCA5A5', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+      ⚠ {msg}
+    </p>
+  ) : null;
 
+// ── Password strength bar ─────────────────────────────────────────────────────
+const StrengthBar: React.FC<{ password: string }> = ({ password }) => {
+  if (!password) return null;
+  const { score, label, color } = passwordStrength(password);
+  const pct = Math.min((score / 5) * 100, 100);
+  return (
+    <div style={{ marginTop: '0.4rem' }}>
+      <div style={{ height: 4, borderRadius: 99, background: 'rgba(148,163,184,0.2)', overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 99, transition: 'width 0.3s ease, background 0.3s ease' }} />
+      </div>
+      <p style={{ fontSize: '0.7rem', color, marginTop: '0.2rem', fontWeight: 600 }}>{label}</p>
+    </div>
+  );
+};
+
+// ── Component ─────────────────────────────────────────────────────────────────
 const Register: React.FC = () => {
   const [form, setForm] = useState({
-    fullName: '', email: '', password: '', confirm: '', role: 'graduate', agreed: false,
+    firstName: '', lastName: '', email: '', password: '', confirm: '', role: 'graduate',
   });
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  // 'none' | 'duplicate' | 'unverified'
+  const [emailStatus, setEmailStatus] = useState<'none' | 'duplicate' | 'unverified'>('none');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const setField = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(p => ({ ...p, [k]: e.target.value }));
     if (errors[k]) setErrors(p => ({ ...p, [k]: '' }));
+    // Reset duplicate/unverified state when user edits the email
+    if (k === 'email') setEmailStatus('none');
   };
 
-  // Validate a single field on blur
-  const validateField = (k: string, value: string) => {
+  // Validate on blur for immediate feedback
+  const blurValidate = (k: string, value: string) => {
     let err = '';
-    if (k === 'fullName') err = validateFullName(value);
-    if (k === 'email')    err = validateEmail(value);
-    if (k === 'password') err = validatePassword(value);
-    if (k === 'confirm')  err = value !== form.password ? 'Passwords do not match' : '';
+    if (k === 'firstName') err = validateName(value, 'First name');
+    if (k === 'lastName')  err = validateName(value, 'Surname');
+    if (k === 'email')     err = validateEmail(value);
+    if (k === 'password')  err = validatePassword(value);
+    if (k === 'confirm')   err = value !== form.password ? 'Passwords do not match' : '';
     if (err) setErrors(p => ({ ...p, [k]: err }));
   };
 
@@ -44,8 +65,11 @@ const Register: React.FC = () => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
-    const nameErr = validateFullName(form.fullName);
-    if (nameErr) newErrors.fullName = nameErr;
+    const fnErr = validateName(form.firstName, 'First name');
+    if (fnErr) newErrors.firstName = fnErr;
+
+    const lnErr = validateName(form.lastName, 'Surname');
+    if (lnErr) newErrors.lastName = lnErr;
 
     const emailErr = validateEmail(form.email);
     if (emailErr) newErrors.email = emailErr;
@@ -53,8 +77,11 @@ const Register: React.FC = () => {
     const pwErr = validatePassword(form.password);
     if (pwErr) newErrors.password = pwErr;
 
-    if (form.password !== form.confirm) newErrors.confirm = 'Passwords do not match';
-    if (!form.agreed) newErrors.agreed = 'You must agree to the Terms of Use and Privacy Policy';
+    if (!form.confirm) {
+      newErrors.confirm = 'Please confirm your password';
+    } else if (form.confirm !== form.password) {
+      newErrors.confirm = 'Passwords do not match';
+    }
 
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
@@ -63,164 +90,308 @@ const Register: React.FC = () => {
       const res: any = await (register as any)({
         email: form.email.trim().toLowerCase(),
         password: form.password,
-        full_name: form.fullName.trim(),
+        full_name: `${form.firstName.trim()} ${form.lastName.trim()}`,
         role: form.role as any,
         frontend_url: window.location.origin,
       });
-      // Registration now requires email verification — show success screen
       if (res?.requires_verification) {
         navigate(`/check-email?email=${encodeURIComponent(form.email.trim().toLowerCase())}`);
       } else {
         navigate('/');
       }
-    } catch {
-      setErrors({ submit: 'Registration failed. This email may already be in use.' });
+    } catch (err: any) {
+      // Surface field-level errors from the backend
+      const data = err?.response?.data;
+
+      if (data && typeof data === 'object') {
+        const mapped: Record<string, string> = {};
+
+        if (data.email) {
+          const emailMsg: string = Array.isArray(data.email) ? data.email[0] : String(data.email);
+
+          if (data.email_unverified) {
+            setEmailStatus('unverified');
+            mapped.email = emailMsg;
+          } else {
+            // Any email error that mentions existing account → show duplicate banner
+            setEmailStatus('duplicate');
+            mapped.email = emailMsg;
+          }
+        }
+
+        if (data.password)  mapped.password  = Array.isArray(data.password)  ? data.password[0]  : String(data.password);
+        if (data.full_name) mapped.firstName = Array.isArray(data.full_name) ? data.full_name[0] : String(data.full_name);
+        if (data.error)     mapped.submit    = String(data.error);
+
+        if (Object.keys(mapped).length > 0) { setErrors(mapped); return; }
+      }
+
+      // Generic fallback — treat any unknown error as a duplicate to be safe
+      setEmailStatus('duplicate');
+      setErrors({ email: 'This account already exists, please sign in.' });
     } finally {
       setLoading(false);
     }
   };
 
-  const inputStyle = (hasErr: boolean): React.CSSProperties => ({
-    width: '100%', padding: '0.6rem 0.875rem',
-    background: 'var(--surface-2)',
-    border: `1.5px solid ${hasErr ? 'rgba(239,68,68,0.6)' : 'var(--border-2)'}`,
-    borderRadius: 8, fontSize: '0.875rem', color: 'var(--text-primary)',
-    fontFamily: 'inherit', outline: 'none',
-  });
+  // Resend verification email
+  const handleResend = async () => {
+    setResendLoading(true);
+    try {
+      const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api';
+      await fetch(`${BASE_URL}/auth/resend-verification/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email.trim().toLowerCase(), frontend_url: window.location.origin }),
+      });
+      setResendSent(true);
+    } catch {
+      // fail silently — user can try again
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   return (
     <div className="auth-bg" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
-      <div className="auth-card fade-up" style={{ maxWidth: '480px' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.75rem' }}>
-          <Logo size="lg" />
+      <div className="auth-card fade-up" style={{ maxWidth: '460px' }}>
+
+        {/* ── Brand header ── */}
+        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: '10px',
+              background: 'linear-gradient(135deg, var(--brand), var(--brand-light))',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: 'var(--s-brand)',
+            }}>
+              <span style={{ fontSize: '1.2rem' }}>🎓</span>
+            </div>
+            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Graduate<span style={{ color: 'var(--brand-light)' }}>Connect</span>
+            </span>
+          </div>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
+            Make the most of your professional life
+          </p>
         </div>
 
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Create your account</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-          Join graduates and employers on GradLink
-        </p>
-
-        {errors.submit && (
-          <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1.25rem', color: '#FCA5A5', fontSize: '0.875rem' }}>
+        {/* ── Submit error banner — only for non-email errors ── */}
+        {errors.submit && !errors.email && (
+          <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 'var(--r-md)', padding: '0.7rem 1rem', marginBottom: '1.25rem', color: '#FCA5A5', fontSize: '0.85rem' }}>
             {errors.submit}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-          {/* Full Name */}
+        <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+
+          {/* First Name */}
           <div>
-            <label className="field-label">Full Name <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(first &amp; last)</span></label>
+            <label className="field-label">First Name</label>
             <input
-              type="text" value={form.fullName} onChange={setField('fullName')}
-              onBlur={e => validateField('fullName', e.target.value)}
-              placeholder="e.g. Emmanuel Cho Tepi"
-              style={inputStyle(!!errors.fullName)}
-              onFocus={e => { e.target.style.borderColor = '#60A5FA'; e.target.style.boxShadow = '0 0 0 3px rgba(96,165,250,0.15)'; }}
+              className="field"
+              type="text"
+              value={form.firstName}
+              onChange={setField('firstName')}
+              onBlur={e => blurValidate('firstName', e.target.value)}
+              placeholder="First name"
+              maxLength={75}
+              autoComplete="given-name"
+              style={{ borderColor: errors.firstName ? 'rgba(239,68,68,0.6)' : undefined }}
+              onFocus={e => { e.target.style.borderColor = 'var(--brand-light)'; }}
             />
-            <Err msg={errors.fullName} />
+            <Err msg={errors.firstName} />
+          </div>
+
+          {/* Surname */}
+          <div>
+            <label className="field-label">Surname</label>
+            <input
+              className="field"
+              type="text"
+              value={form.lastName}
+              onChange={setField('lastName')}
+              onBlur={e => blurValidate('lastName', e.target.value)}
+              placeholder="Surname"
+              maxLength={75}
+              autoComplete="family-name"
+              style={{ borderColor: errors.lastName ? 'rgba(239,68,68,0.6)' : undefined }}
+              onFocus={e => { e.target.style.borderColor = 'var(--brand-light)'; }}
+            />
+            <Err msg={errors.lastName} />
           </div>
 
           {/* Email */}
           <div>
-            <label className="field-label">Email address</label>
+            <label className="field-label">Email Address</label>
             <input
-              type="email" value={form.email} onChange={setField('email')}
-              onBlur={e => validateField('email', e.target.value)}
+              className="field"
+              type="email"
+              value={form.email}
+              onChange={setField('email')}
+              onBlur={e => blurValidate('email', e.target.value)}
               placeholder="you@example.com"
-              style={inputStyle(!!errors.email)}
-              onFocus={e => { e.target.style.borderColor = '#60A5FA'; e.target.style.boxShadow = '0 0 0 3px rgba(96,165,250,0.15)'; }}
+              maxLength={254}
+              autoComplete="email"
+              style={{ borderColor: errors.email || emailStatus !== 'none' ? 'rgba(239,68,68,0.6)' : undefined }}
+              onFocus={e => { e.target.style.borderColor = 'var(--brand-light)'; }}
             />
             <Err msg={errors.email} />
+
+            {/* Duplicate account banner */}
+            {emailStatus === 'duplicate' && (
+              <div style={{ marginTop: '0.6rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 'var(--r-md)', padding: '0.75rem 1rem' }}>
+                <p style={{ fontSize: '0.8rem', color: '#FCA5A5', marginBottom: '0.5rem', lineHeight: 1.5 }}>
+                  An account with this email already exists. Please sign in instead.
+                </p>
+                <Link
+                  to="/login"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 1rem', background: 'linear-gradient(135deg, var(--brand), var(--brand-light))', color: '#fff', borderRadius: 'var(--r-pill)', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}
+                >
+                  Go to Sign In →
+                </Link>
+              </div>
+            )}
+
+            {/* Unverified account banner */}
+            {emailStatus === 'unverified' && (
+              <div style={{ marginTop: '0.6rem', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 'var(--r-md)', padding: '0.75rem 1rem' }}>
+                <p style={{ fontSize: '0.8rem', color: '#FCD34D', marginBottom: '0.5rem', lineHeight: 1.5 }}>
+                  This account has already been registered but has not been verified. Please check your email for the verification link or request a new one.
+                </p>
+                {resendSent ? (
+                  <p style={{ fontSize: '0.78rem', color: '#6EE7B7', fontWeight: 600 }}>✓ Verification email sent — check your inbox.</p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resendLoading}
+                    style={{ padding: '0.45rem 1rem', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)', color: '#FCD34D', borderRadius: 'var(--r-pill)', fontSize: '0.8rem', fontWeight: 700, cursor: resendLoading ? 'not-allowed' : 'pointer', opacity: resendLoading ? 0.6 : 1 }}
+                  >
+                    {resendLoading ? 'Sending…' : 'Resend Verification Email'}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Password + Confirm */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-            <div>
-              <label className="field-label">Password</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showPw ? 'text' : 'password'} value={form.password}
-                  onChange={setField('password')}
-                  onBlur={e => validateField('password', e.target.value)}
-                  placeholder="Min. 8 chars"
-                  style={{ ...inputStyle(!!errors.password), paddingRight: '2.5rem' }}
-                  onFocus={e => { e.target.style.borderColor = '#60A5FA'; }}
-                />
-                <button type="button" onClick={() => setShowPw(!showPw)}
-                  style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                  {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
-              </div>
-              <Err msg={errors.password} />
-            </div>
-            <div>
-              <label className="field-label">Confirm</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showConfirm ? 'text' : 'password'} value={form.confirm}
-                  onChange={setField('confirm')}
-                  onBlur={e => validateField('confirm', e.target.value)}
-                  placeholder="Repeat"
-                  style={{ ...inputStyle(!!errors.confirm), paddingRight: '2.5rem' }}
-                  onFocus={e => { e.target.style.borderColor = '#60A5FA'; }}
-                />
-                <button type="button" onClick={() => setShowConfirm(!showConfirm)}
-                  style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                  {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
-              </div>
-              <Err msg={errors.confirm} />
-            </div>
-          </div>
-
-          {/* Role selector */}
+          {/* Password + strength indicator */}
           <div>
-            <label className="field-label">I am a...</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
-              {roles.map(r => (
-                <label key={r.value} style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.875rem 0.5rem',
-                  borderRadius: 'var(--r-md)', cursor: 'pointer', textAlign: 'center',
-                  border: `1.5px solid ${form.role === r.value ? 'var(--brand-light)' : 'var(--border-2)'}`,
-                  background: form.role === r.value ? 'rgba(37,99,235,0.12)' : 'var(--bg-3)',
-                  transition: 'all 150ms ease',
-                }}>
-                  <input type="radio" name="role" value={r.value} checked={form.role === r.value}
-                    onChange={() => setForm(p => ({ ...p, role: r.value }))} style={{ display: 'none' }} />
-                  <span style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{r.emoji}</span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: form.role === r.value ? '#93C5FD' : 'var(--text-secondary)' }}>{r.label}</span>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>{r.desc}</span>
-                </label>
-              ))}
+            <label className="field-label">
+              Password{' '}
+              <span style={{ color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>
+                (min 8 chars, uppercase, digit, symbol)
+              </span>
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                className="field"
+                type={showPw ? 'text' : 'password'}
+                value={form.password}
+                onChange={setField('password')}
+                onBlur={e => blurValidate('password', e.target.value)}
+                placeholder="••••••••"
+                maxLength={128}
+                autoComplete="new-password"
+                style={{ borderColor: errors.password ? 'rgba(239,68,68,0.6)' : undefined, paddingRight: '2.75rem' }}
+                onFocus={e => { e.target.style.borderColor = 'var(--brand-light)'; }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw(p => !p)}
+                style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'flex', alignItems: 'center' }}
+                aria-label={showPw ? 'Hide password' : 'Show password'}
+              >
+                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
+            <StrengthBar password={form.password} />
+            <Err msg={errors.password} />
           </div>
+
+          {/* Confirm Password */}
+          <div>
+            <label className="field-label">Confirm Password</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                className="field"
+                type={showConfirm ? 'text' : 'password'}
+                value={form.confirm}
+                onChange={setField('confirm')}
+                onBlur={e => blurValidate('confirm', e.target.value)}
+                placeholder="••••••••"
+                maxLength={128}
+                autoComplete="new-password"
+                style={{ borderColor: errors.confirm ? 'rgba(239,68,68,0.6)' : undefined, paddingRight: '2.75rem' }}
+                onFocus={e => { e.target.style.borderColor = 'var(--brand-light)'; }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(p => !p)}
+                style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'flex', alignItems: 'center' }}
+                aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'}
+              >
+                {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {/* Live match indicator */}
+            {form.confirm && (
+              <p style={{ fontSize: '0.7rem', marginTop: '0.25rem', color: form.confirm === form.password ? '#22C55E' : '#FCA5A5', fontWeight: 600 }}>
+                {form.confirm === form.password ? '✓ Passwords match' : '✗ Passwords do not match'}
+              </p>
+            )}
+            <Err msg={errors.confirm} />
+          </div>
+
+          {/* Agree & Join */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-primary"
+            style={{ width: '100%', padding: '0.8rem', fontSize: '0.9375rem', borderRadius: 'var(--r-pill)', marginTop: '0.5rem' }}
+          >
+            {loading ? 'Creating account…' : 'Agree & Join'}
+          </button>
 
           {/* Terms */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-              <input type="checkbox" id="agreed" checked={form.agreed}
-                onChange={e => { setForm(p => ({ ...p, agreed: e.target.checked })); setErrors(p => ({ ...p, agreed: '' })); }}
-                style={{ marginTop: '0.2rem', accentColor: '#60A5FA', width: 16, height: 16, flexShrink: 0 }} />
-              <label htmlFor="agreed" style={{ fontSize: '0.8rem', color: '#94A3B8', lineHeight: 1.5, cursor: 'pointer' }}>
-                I agree to the{' '}
-                <a href="/terms" target="_blank" style={{ color: '#60A5FA', textDecoration: 'none', fontWeight: 600 }}>Terms of Use</a>
-                {' '}and{' '}
-                <a href="/privacy" target="_blank" style={{ color: '#60A5FA', textDecoration: 'none', fontWeight: 600 }}>Privacy Policy</a>
-              </label>
-            </div>
-            <Err msg={errors.agreed} />
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.6, margin: '0.25rem 0' }}>
+            By clicking Agree &amp; Join, you agree to the{' '}
+            <Link to="/terms" style={{ color: 'var(--brand-light)', textDecoration: 'none', fontWeight: 600 }}>Terms</Link>
+            ,{' '}
+            <Link to="/privacy" style={{ color: 'var(--brand-light)', textDecoration: 'none', fontWeight: 600 }}>Privacy Policy</Link>
+            {' '}and{' '}
+            <Link to="/cookies" style={{ color: 'var(--brand-light)', textDecoration: 'none', fontWeight: 600 }}>Cookie Policy</Link>
+          </p>
+
+          {/* OR divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '0.25rem 0' }}>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border-2)' }} />
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>or</span>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border-2)' }} />
           </div>
 
-          <button type="submit" disabled={loading}
-            style={{ width: '100%', padding: '0.75rem', marginTop: '0.25rem', background: 'linear-gradient(135deg,#2563EB,#60A5FA)', border: 'none', borderRadius: 10, color: '#fff', fontSize: '0.9375rem', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, boxShadow: '0 4px 14px rgba(37,99,235,0.4)' }}>
-            {loading ? 'Creating account…' : 'Create Account'}
+          {/* Google */}
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ width: '100%', padding: '0.75rem', fontSize: '0.9rem', borderRadius: 'var(--r-pill)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Continue with Google
           </button>
         </form>
 
         <div className="divider" />
         <p style={{ textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
           Already have an account?{' '}
-          <Link to="/login" style={{ color: '#60A5FA', fontWeight: 600, textDecoration: 'none' }}>Sign in</Link>
+          <Link to="/login" style={{ color: 'var(--brand-light)', fontWeight: 700, textDecoration: 'none' }}>
+            Sign in
+          </Link>
         </p>
       </div>
     </div>

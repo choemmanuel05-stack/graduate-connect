@@ -8,7 +8,7 @@ export default {
         display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
       },
       colors: {
-        // ── GradLink Brand Palette ──────────────────────────────
+        // ── Graduate-Connect Brand Palette ──────────────────────────────
         primary: {
           DEFAULT: '#1D4ED8',   // Royal Blue — buttons, links, active states
           light:   '#EFF6FF',   // Hover backgrounds, selected states

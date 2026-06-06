@@ -79,7 +79,7 @@ export const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ onClose }) => {
           <div className="text-center py-6">
             <div className="text-4xl mb-3">🎉</div>
             <h2 className="text-xl font-semibold text-white mb-2">Thank you for your feedback!</h2>
-            <p className="text-slate-400 text-sm">Your response helps us improve GradLink.</p>
+            <p className="text-slate-400 text-sm">Your response helps us improve Graduate-Connect.</p>
           </div>
         ) : (
           <>

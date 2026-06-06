@@ -210,7 +210,7 @@ const Landing: React.FC = () => {
       {/* Footer */}
       <footer style={{ borderTop: '1px solid rgba(148,163,184,0.1)', padding: '2rem 1.5rem', textAlign: 'center', color: '#475569', fontSize: '0.8rem' }}>
         <Logo size="sm" />
-        <p style={{ marginTop: '0.75rem' }}>© {new Date().getFullYear()} GradLink · CATUC Bamenda · Built to connect graduates with opportunities</p>
+        <p style={{ marginTop: '0.75rem' }}>© {new Date().getFullYear()} Graduate-Connect · CATUC Bamenda · Built to connect graduates with opportunities</p>
         <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', marginTop: '0.75rem' }}>
           <Link to="/terms" style={{ color: '#475569', textDecoration: 'none' }}>Terms</Link>
           <Link to="/privacy" style={{ color: '#475569', textDecoration: 'none' }}>Privacy</Link>

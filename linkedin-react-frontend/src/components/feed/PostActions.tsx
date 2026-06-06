@@ -1,14 +1,17 @@
 import React from 'react';
-import { ThumbsUp, MessageCircle, Share2 } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Repeat2, Send } from 'lucide-react';
 
 interface PostActionsProps {
   likes: number;
   comments: number;
   shares: number;
   isLiked: boolean;
+  isReposted?: boolean;
   onLike: () => void;
   onComment: () => void;
-  onShare: () => void;
+  onRepost: () => void;
+  onSend: () => void;
+  onShare?: () => void; // legacy compat
 }
 
 export const PostActions: React.FC<PostActionsProps> = ({
@@ -16,41 +19,99 @@ export const PostActions: React.FC<PostActionsProps> = ({
   comments,
   shares,
   isLiked,
+  isReposted = false,
   onLike,
   onComment,
-  onShare,
+  onRepost,
+  onSend,
 }) => {
+  // Each button takes equal share of the row
+  const base: React.CSSProperties = {
+    flex: '1 1 0',
+    minWidth: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.2rem',
+    padding: '0.5rem 0.1rem',
+    borderRadius: 8,
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    fontSize: '0.72rem',
+    fontWeight: 600,
+    color: '#6B7280',
+    transition: 'background 150ms ease',
+    whiteSpace: 'nowrap',
+    overflow: 'visible',   // never clip text
+  };
+
+  const hover = (e: React.MouseEvent<HTMLButtonElement>) =>
+    (e.currentTarget.style.background = 'rgba(0,0,0,0.06)');
+  const unhover = (e: React.MouseEvent<HTMLButtonElement>) =>
+    (e.currentTarget.style.background = 'transparent');
+
   return (
-    <div className="mt-4 pt-4 border-t border-gray-200">
-      <div className="flex items-center justify-around gap-2">
+    <div style={{
+      marginTop: '0.875rem',
+      paddingTop: '0.875rem',
+      borderTop: '1px solid rgba(148,163,184,0.2)',
+    }}>
+      <div style={{ display: 'flex', width: '100%', gap: '0.125rem' }}>
+
+        {/* Like */}
         <button
           onClick={onLike}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-gray-100 ${
-            isLiked ? 'text-[#0A66C2]' : 'text-[#6B7280]'
-          }`}
+          style={{ ...base, color: isLiked ? '#0A66C2' : '#6B7280' }}
+          onMouseEnter={hover}
+          onMouseLeave={unhover}
+          title="Like"
         >
-          <ThumbsUp className="w-5 h-5" fill={isLiked ? 'currentColor' : 'none'} />
-          <span className="text-sm font-medium hidden sm:inline">Like</span>
-          {likes > 0 && <span className="text-sm">({likes})</span>}
+          <ThumbsUp size={16} fill={isLiked ? 'currentColor' : 'none'} />
+          <span>Like{likes > 0 ? ` (${likes})` : ''}</span>
         </button>
 
+        {/* Comment */}
         <button
           onClick={onComment}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-gray-100 text-[#6B7280]"
+          style={base}
+          onMouseEnter={hover}
+          onMouseLeave={unhover}
+          title="Comment"
         >
-          <MessageCircle className="w-5 h-5" />
-          <span className="text-sm font-medium hidden sm:inline">Comment</span>
-          {comments > 0 && <span className="text-sm">({comments})</span>}
+          <MessageCircle size={16} />
+          <span>Comment{comments > 0 ? ` (${comments})` : ''}</span>
         </button>
 
+        {/* Repost — always grey, dims after click */}
         <button
-          onClick={onShare}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-gray-100 text-[#6B7280]"
+          onClick={onRepost}
+          style={{
+            ...base,
+            opacity: isReposted ? 0.5 : 1,
+            cursor: isReposted ? 'default' : 'pointer',
+          }}
+          onMouseEnter={e => { if (!isReposted) hover(e); }}
+          onMouseLeave={e => { if (!isReposted) unhover(e); }}
+          title={isReposted ? 'Already reposted' : 'Repost'}
+          disabled={isReposted}
         >
-          <Share2 className="w-5 h-5" />
-          <span className="text-sm font-medium hidden sm:inline">Share</span>
-          {shares > 0 && <span className="text-sm">({shares})</span>}
+          <Repeat2 size={16} />
+          <span>Repost{shares > 0 ? ` (${shares})` : ''}</span>
         </button>
+
+        {/* Send */}
+        <button
+          onClick={onSend}
+          style={base}
+          onMouseEnter={hover}
+          onMouseLeave={unhover}
+          title="Send"
+        >
+          <Send size={16} />
+          <span>Send</span>
+        </button>
+
       </div>
     </div>
   );

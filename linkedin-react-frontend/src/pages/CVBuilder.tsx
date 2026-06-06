@@ -731,7 +731,7 @@ const ClassicCV:React.FC<{cv:CVData;work:WorkExp[];edu:Education[];certs:Cert[];
         <div key={c.id} style={{display:'flex',justifyContent:'space-between',marginBottom:'0.3rem'}}><span style={{fontSize:'0.78rem',fontWeight:600}}>{c.name}</span><span style={{fontSize:'0.72rem',color:'#6B7280'}}>{c.issuer}{c.date?` · ${c.date}`:''}</span></div>
       ))}</Sec>}
       {langs.some(l=>l.name) && <Sec title="Languages" accent={accent}><div style={{display:'flex',flexWrap:'wrap',gap:'1rem'}}>{langs.filter(l=>l.name).map(l=><span key={l.id} style={{fontSize:'0.78rem'}}><strong>{l.name}</strong>{l.level?` — ${l.level}`:''}</span>)}</div></Sec>}
-      <div style={{marginTop:'1.5rem',paddingTop:'0.5rem',borderTop:'1px solid #E5E7EB',textAlign:'center'}}><span style={{fontSize:'0.6rem',color:'#9CA3AF'}}>Built with GradLink</span></div>
+      <div style={{marginTop:'1.5rem',paddingTop:'0.5rem',borderTop:'1px solid #E5E7EB',textAlign:'center'}}><span style={{fontSize:'0.6rem',color:'#9CA3AF'}}>Built with Graduate-Connect</span></div>
     </div>
   </div>
 );

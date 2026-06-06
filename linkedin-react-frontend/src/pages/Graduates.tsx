@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Search, GraduationCap, ExternalLink, FileText, MapPin, Star } from 'lucide-react';
 import api from '../services/api';
+import { FollowButton } from '../components/common/FollowButton';
+import { FollowButton } from '../components/common/FollowButton';
 
 interface Graduate {
-  id: number; full_name: string; university: string; degree: string;
+  id: number;
+  user_id?: number;
+  full_name: string; university: string; degree: string;
   field_of_study: string; graduation_year: number; gpa: number | null;
   skills: string; skills_list: string[]; bio: string;
   linkedin_url: string; github_url: string; cv_url: string | null;
@@ -189,6 +193,7 @@ const Graduates: React.FC = () => {
                     <ExternalLink size={14} /> GitHub
                   </a>
                 )}
+                <FollowButton userId={selected.id} size="md" />
               </div>
             </div>
           </div>

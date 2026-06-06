@@ -5,12 +5,12 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════
-   GRADLINK — Premium Design System
+   GRADUATE-CONNECT — Premium Design System
    Palette: Royal Blue · Emerald · Slate · Near-White
 ═══════════════════════════════════════════════════════ */
 
 :root {
-  /* ── GradLink Brand Colors ─────────────────────────── */
+  /* ── Graduate-Connect Brand Colors ─────────────────────────── */
   --color-primary:       #1D4ED8;   /* Royal Blue — primary actions */
   --color-primary-light: #EFF6FF;   /* Hover backgrounds */
   --color-primary-hover: #1E40AF;   /* Darker hover */

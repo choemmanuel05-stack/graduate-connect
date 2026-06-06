@@ -10,4 +10,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    outDir: 'dist',
+    // Ensure client-side routing works on Render Static Site
+    // The _redirects file handles this
+    emptyOutDir: true,
+  },
 })

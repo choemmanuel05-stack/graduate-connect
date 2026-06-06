@@ -1,16 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Briefcase, GraduationCap, Building2, CheckCircle, XCircle, Trash2, Eye } from 'lucide-react';
+import { Users, Briefcase, GraduationCap, Building2, CheckCircle, XCircle, Trash2, ShieldCheck, Clock, FileText, ExternalLink } from 'lucide-react';
 import api from '../services/api';
 
 interface User { id: number; email: string; role: string; date_joined?: string; }
 interface Job { id: number; title: string; employer_name: string; status: string; created_at: string; applications_count: number; }
 interface Graduate { id: number; full_name: string; university: string; degree: string; is_available: boolean; }
+interface Credential {
+  id: number;
+  graduate_name: string;
+  file_url: string;
+  file_type: string;
+  status: 'pending' | 'verified' | 'rejected';
+  uploaded_at: string;
+  rejection_reason: string;
+}
 
 const AdminDashboard: React.FC = () => {
-  const [tab, setTab] = useState<'overview' | 'users' | 'jobs' | 'graduates'>('overview');
+  const [tab, setTab] = useState<'overview' | 'users' | 'jobs' | 'graduates' | 'credentials'>('overview');
   const [users, setUsers] = useState<User[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [graduates, setGraduates] = useState<Graduate[]>([]);
+  const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [credFilter, setCredFilter] = useState<'pending' | 'verified' | 'rejected'>('pending');
+  const [rejectReason, setRejectReason] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -20,6 +32,7 @@ const AdminDashboard: React.FC = () => {
     employers: users.filter(u => u.role === 'employer').length,
     jobs: jobs.length,
     activeJobs: jobs.filter(j => j.status === 'open').length,
+    pendingCredentials: credentials.filter(c => c.status === 'pending').length,
   };
 
   useEffect(() => {
@@ -28,7 +41,7 @@ const AdminDashboard: React.FC = () => {
 
   const loadAll = async () => {
     setLoading(true);
-    await Promise.all([loadUsers(), loadJobs(), loadGraduates()]);
+    await Promise.all([loadUsers(), loadJobs(), loadGraduates(), loadCredentials()]);
     setLoading(false);
   };
 
@@ -69,6 +82,38 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const loadCredentials = async (filter: 'pending' | 'verified' | 'rejected' = 'pending') => {
+    try {
+      const res: any = await api.get(`/admin/credentials/?status=${filter}`);
+      setCredentials(res.results || []);
+    } catch {
+      setCredentials([]);
+    }
+  };
+
+  const handleVerifyCredential = async (id: number) => {
+    try {
+      const res: any = await api.post(`/admin/credentials/${id}/verify/`);
+      setCredentials(prev => prev.map(c => c.id === id ? res : c));
+      setMessage('Credential verified.');
+    } catch {
+      setMessage('Failed to verify credential.');
+    }
+  };
+
+  const handleRejectCredential = async (id: number) => {
+    const reason = rejectReason[id]?.trim();
+    if (!reason) { setMessage('Please enter a rejection reason.'); return; }
+    try {
+      const res: any = await api.post(`/admin/credentials/${id}/reject/`, { reason });
+      setCredentials(prev => prev.map(c => c.id === id ? res : c));
+      setRejectReason(prev => { const n = { ...prev }; delete n[id]; return n; });
+      setMessage('Credential rejected.');
+    } catch {
+      setMessage('Failed to reject credential.');
+    }
+  };
+
   const handleDeleteUser = async (userId: number) => {
     if (!confirm('Delete this user? This cannot be undone.')) return;
     try {
@@ -97,10 +142,11 @@ const AdminDashboard: React.FC = () => {
   };
 
   const tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'users', label: `Users (${stats.users})` },
-    { id: 'jobs', label: `Jobs (${stats.jobs})` },
-    { id: 'graduates', label: `Graduates (${graduates.length})` },
+    { id: 'overview',     label: 'Overview' },
+    { id: 'users',        label: `Users (${stats.users})` },
+    { id: 'jobs',         label: `Jobs (${stats.jobs})` },
+    { id: 'graduates',    label: `Graduates (${graduates.length})` },
+    { id: 'credentials',  label: `Credentials${stats.pendingCredentials > 0 ? ` (${stats.pendingCredentials})` : ''}` },
   ];
 
   return (

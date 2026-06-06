@@ -1,6 +1,6 @@
-# GradLink Color Palette
+# Graduate-Connect Color Palette
 
-This document defines the official color tokens for the GradLink platform. All components should use these tokens — avoid hardcoded hex values outside this system.
+This document defines the official color tokens for the Graduate-Connect platform. All components should use these tokens — avoid hardcoded hex values outside this system.
 
 ---
 
