@@ -59,33 +59,22 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            frontend_url = request.data.get('frontend_url', 'http://localhost:5173')
-            try:
-                from .email_verification_views import send_verification_email
-                send_verification_email(user, frontend_url)
-            except Exception as exc:
-                logger.warning('Failed to send verification email to %s: %s', user.email, exc)
+            # Mark as verified immediately — no email verification required
+            user.is_email_verified = True
+            user.save(update_fields=['is_email_verified'])
 
+            # Issue tokens so the user is logged in right away
+            refresh = RefreshToken.for_user(user)
             return Response({
-                'message': 'Account created! Please check your email to verify your address before logging in.',
+                'message': 'Account created successfully!',
                 'email': user.email,
-                'requires_verification': True,
+                'requires_verification': False,
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+                'user': UserSerializer(user).data,
             }, status=status.HTTP_201_CREATED)
 
-        # Translate the unverified_account sentinel into a structured response
-        errors = serializer.errors
-        if 'email' in errors:
-            email_errors = errors['email']
-            msgs = [str(e) for e in email_errors]
-            if any('unverified_account' in m for m in msgs):
-                email_value = (request.data.get('email') or '').strip().lower()
-                return Response({
-                    'email': ['This account has already been registered but has not been verified. Please check your email for the verification link or request a new one.'],
-                    'email_unverified': True,
-                    'email_value': email_value,
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(APIView):
@@ -114,19 +103,10 @@ class LoginView(APIView):
 
         user = authenticate(request, username=email, password=password)
         if not user:
-            # Generic message — do not reveal whether email exists
             return Response(
                 {'error': 'Invalid email or password.'},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-
-        # Block unverified users (except superusers)
-        if not user.is_email_verified and not user.is_superuser:
-            return Response({
-                'error': 'Please verify your email address before logging in.',
-                'requires_verification': True,
-                'email': user.email,
-            }, status=status.HTTP_403_FORBIDDEN)
 
         # Clear rate-limit counter on successful login
         cache.delete(f'login:{ip}')

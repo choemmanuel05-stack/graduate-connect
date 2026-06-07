@@ -34,7 +34,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         existing = User.objects.filter(email=value).first()
         if existing:
             if not existing.is_email_verified and not existing.is_superuser:
-                raise serializers.ValidationError('unverified_account')
+                # Unverified ghost account — delete it so the user can re-register cleanly
+                existing.delete()
+                return value
             raise serializers.ValidationError(
                 'An account with this email already exists. Please sign in instead.'
             )

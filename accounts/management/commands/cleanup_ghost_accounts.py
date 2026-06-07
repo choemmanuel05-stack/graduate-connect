@@ -31,7 +31,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            cutoff = timezone.now() - timedelta(hours=24)
+            cutoff = timezone.now() - timedelta(hours=1)
             qs = User.objects.filter(
                 is_email_verified=False,
                 is_superuser=False,

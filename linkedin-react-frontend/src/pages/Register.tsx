@@ -36,18 +36,12 @@ const Register: React.FC = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  // 'none' | 'duplicate' | 'unverified'
-  const [emailStatus, setEmailStatus] = useState<'none' | 'duplicate' | 'unverified'>('none');
-  const [resendLoading, setResendLoading] = useState(false);
-  const [resendSent, setResendSent] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const setField = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(p => ({ ...p, [k]: e.target.value }));
     if (errors[k]) setErrors(p => ({ ...p, [k]: '' }));
-    // Reset duplicate/unverified state when user edits the email
-    if (k === 'email') setEmailStatus('none');
   };
 
   // Validate on blur for immediate feedback
@@ -94,61 +88,20 @@ const Register: React.FC = () => {
         role: form.role as any,
         frontend_url: window.location.origin,
       });
-      if (res?.requires_verification) {
-        navigate(`/check-email?email=${encodeURIComponent(form.email.trim().toLowerCase())}`);
-      } else {
-        navigate('/');
-      }
+      navigate('/');
     } catch (err: any) {
-      // Surface field-level errors from the backend
       const data = err?.response?.data;
-
       if (data && typeof data === 'object') {
         const mapped: Record<string, string> = {};
-
-        if (data.email) {
-          const emailMsg: string = Array.isArray(data.email) ? data.email[0] : String(data.email);
-
-          if (data.email_unverified) {
-            setEmailStatus('unverified');
-            mapped.email = emailMsg;
-          } else {
-            // Any email error that mentions existing account → show duplicate banner
-            setEmailStatus('duplicate');
-            mapped.email = emailMsg;
-          }
-        }
-
+        if (data.email)     mapped.email     = Array.isArray(data.email)     ? data.email[0]     : String(data.email);
         if (data.password)  mapped.password  = Array.isArray(data.password)  ? data.password[0]  : String(data.password);
         if (data.full_name) mapped.firstName = Array.isArray(data.full_name) ? data.full_name[0] : String(data.full_name);
         if (data.error)     mapped.submit    = String(data.error);
-
         if (Object.keys(mapped).length > 0) { setErrors(mapped); return; }
       }
-
-      // Generic fallback — treat any unknown error as a duplicate to be safe
-      setEmailStatus('duplicate');
-      setErrors({ email: 'This account already exists, please sign in.' });
+      setErrors({ submit: 'Registration failed. Please try again.' });
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Resend verification email
-  const handleResend = async () => {
-    setResendLoading(true);
-    try {
-      const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api';
-      await fetch(`${BASE_URL}/auth/resend-verification/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email.trim().toLowerCase(), frontend_url: window.location.origin }),
-      });
-      setResendSent(true);
-    } catch {
-      // fail silently — user can try again
-    } finally {
-      setResendLoading(false);
     }
   };
 
@@ -233,46 +186,10 @@ const Register: React.FC = () => {
               placeholder="you@example.com"
               maxLength={254}
               autoComplete="email"
-              style={{ borderColor: errors.email || emailStatus !== 'none' ? 'rgba(239,68,68,0.6)' : undefined }}
+              style={{ borderColor: errors.email ? 'rgba(239,68,68,0.6)' : undefined }}
               onFocus={e => { e.target.style.borderColor = 'var(--brand-light)'; }}
             />
             <Err msg={errors.email} />
-
-            {/* Duplicate account banner */}
-            {emailStatus === 'duplicate' && (
-              <div style={{ marginTop: '0.6rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 'var(--r-md)', padding: '0.75rem 1rem' }}>
-                <p style={{ fontSize: '0.8rem', color: '#FCA5A5', marginBottom: '0.5rem', lineHeight: 1.5 }}>
-                  An account with this email already exists. Please sign in instead.
-                </p>
-                <Link
-                  to="/login"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 1rem', background: 'linear-gradient(135deg, var(--brand), var(--brand-light))', color: '#fff', borderRadius: 'var(--r-pill)', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}
-                >
-                  Go to Sign In →
-                </Link>
-              </div>
-            )}
-
-            {/* Unverified account banner */}
-            {emailStatus === 'unverified' && (
-              <div style={{ marginTop: '0.6rem', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 'var(--r-md)', padding: '0.75rem 1rem' }}>
-                <p style={{ fontSize: '0.8rem', color: '#FCD34D', marginBottom: '0.5rem', lineHeight: 1.5 }}>
-                  This account has already been registered but has not been verified. Please check your email for the verification link or request a new one.
-                </p>
-                {resendSent ? (
-                  <p style={{ fontSize: '0.78rem', color: '#6EE7B7', fontWeight: 600 }}>✓ Verification email sent — check your inbox.</p>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleResend}
-                    disabled={resendLoading}
-                    style={{ padding: '0.45rem 1rem', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)', color: '#FCD34D', borderRadius: 'var(--r-pill)', fontSize: '0.8rem', fontWeight: 700, cursor: resendLoading ? 'not-allowed' : 'pointer', opacity: resendLoading ? 0.6 : 1 }}
-                  >
-                    {resendLoading ? 'Sending…' : 'Resend Verification Email'}
-                  </button>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Password + strength indicator */}

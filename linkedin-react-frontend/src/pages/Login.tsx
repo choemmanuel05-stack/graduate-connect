@@ -45,6 +45,9 @@ const Login: React.FC = () => {
         setErrors({ submit: data?.error || 'Too many login attempts. Please wait 15 minutes.' });
       } else if (status === 401 || status === 400) {
         setErrors({ submit: 'Invalid email or password. Please check your credentials and try again.' });
+      } else if (!err?.response) {
+        // No response at all — server is waking up (free tier spin-down)
+        setErrors({ submit: 'The server is starting up, this can take up to 60 seconds on the free tier. Please wait a moment and try again.' });
       } else {
         setErrors({ submit: 'Something went wrong. Please try again.' });
       }
