@@ -59,7 +59,7 @@ def validate_name(value: str, field_label: str = 'Name') -> str:
 
 def validate_password_strength(password: str) -> str:
     """
-    Enforces strong password policy.
+    Enforces password policy: min 8 chars, at least one digit.
     Returns cleaned value or raises ValidationError.
     """
     if not password:
@@ -71,19 +71,8 @@ def validate_password_strength(password: str) -> str:
     if len(password) > 128:
         raise ValidationError('Password must not exceed 128 characters.')
 
-    if not re.search(r'[A-Z]', password):
-        raise ValidationError('Password must contain at least one uppercase letter.')
-
-    if not re.search(r'[a-z]', password):
-        raise ValidationError('Password must contain at least one lowercase letter.')
-
     if not re.search(r'[0-9]', password):
         raise ValidationError('Password must contain at least one digit.')
-
-    if not re.search(r'[!@#$%^&*()\-_=+\[\]{}|;:\'",.<>?/\\`~]', password):
-        raise ValidationError(
-            'Password must contain at least one special character (e.g. ! @ # $ % ^ & *).'
-        )
 
     if password.lower() in COMMON_PASSWORDS:
         raise ValidationError('This password is too common. Please choose a stronger password.')

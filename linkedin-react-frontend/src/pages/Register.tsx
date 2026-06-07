@@ -280,7 +280,7 @@ const Register: React.FC = () => {
             <label className="field-label">
               Password{' '}
               <span style={{ color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>
-                (min 8 chars, uppercase, digit, symbol)
+                (min 8 chars, must include a number)
               </span>
             </label>
             <div style={{ position: 'relative' }}>
