@@ -199,7 +199,14 @@
       </div>
       <div class="field">
         <label for="password">Password</label>
-        <input type="password" name="password" id="password" placeholder="Enter your password" required />
+        <div style="position:relative;">
+          <input type="password" name="password" id="password" placeholder="Enter your password" required
+                 style="padding-right:3rem;" />
+          <button type="button" onclick="togglePw()" aria-label="Toggle password visibility"
+                  style="position:absolute;right:.875rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#64748b;font-size:1.1rem;padding:0;line-height:1;">
+            <i class="bi bi-eye" id="pw-icon"></i>
+          </button>
+        </div>
       </div>
       <button type="submit" class="btn">
         <i class="bi bi-box-arrow-in-right"></i> Sign In
@@ -212,5 +219,18 @@
     </div>
   </div>
 </div>
+<script>
+  function togglePw() {
+    var inp = document.getElementById('password');
+    var icon = document.getElementById('pw-icon');
+    if (inp.type === 'password') {
+      inp.type = 'text';
+      icon.className = 'bi bi-eye-slash';
+    } else {
+      inp.type = 'password';
+      icon.className = 'bi bi-eye';
+    }
+  }
+</script>
 </body>
 </html>
