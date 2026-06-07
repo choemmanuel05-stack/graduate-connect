@@ -249,16 +249,26 @@
       <div class="grid-2">
         <div class="field">
           <label for="password">Password <span style="color:var(--muted);font-weight:400;text-transform:none;">(min 8)</span></label>
-          <input type="password" name="password" id="password"
-                 placeholder="••••••••"
-                 class="{% if form.password.errors %}is-invalid{% endif %}" />
+          <div style="position:relative;">
+            <input type="password" name="password" id="password"
+                   placeholder="••••••••" style="padding-right:2.75rem;"
+                   class="{% if form.password.errors %}is-invalid{% endif %}" />
+            <button type="button" onclick="togglePw('password','pw1-icon')" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#64748b;font-size:1rem;padding:0;line-height:1;" aria-label="Toggle password">
+              <i class="bi bi-eye" id="pw1-icon"></i>
+            </button>
+          </div>
           {% if form.password.errors %}<p class="error-msg">{{ form.password.errors.0 }}</p>{% endif %}
         </div>
         <div class="field">
           <label for="password_confirm">Confirm Password</label>
-          <input type="password" name="password_confirm" id="password_confirm"
-                 placeholder="••••••••"
-                 class="{% if form.password_confirm.errors %}is-invalid{% endif %}" />
+          <div style="position:relative;">
+            <input type="password" name="password_confirm" id="password_confirm"
+                   placeholder="••••••••" style="padding-right:2.75rem;"
+                   class="{% if form.password_confirm.errors %}is-invalid{% endif %}" />
+            <button type="button" onclick="togglePw('password_confirm','pw2-icon')" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#64748b;font-size:1rem;padding:0;line-height:1;" aria-label="Toggle confirm password">
+              <i class="bi bi-eye" id="pw2-icon"></i>
+            </button>
+          </div>
           {% if form.password_confirm.errors %}<p class="error-msg">{{ form.password_confirm.errors.0 }}</p>{% endif %}
         </div>
       </div>

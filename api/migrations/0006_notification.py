@@ -7,14 +7,10 @@ class Migration(migrations.Migration):
     """
     Creates the Notification model.
 
-    Uses SeparateDatabaseAndState so the migration is IDEMPOTENT:
-    - The database_operations block runs a raw SQL CREATE TABLE IF NOT EXISTS
-      which is a no-op when the table already exists (safe to re-run).
-    - The state_operations block tells Django's ORM about the model so
-      it can generate future migrations correctly.
-
-    This handles the case where a previous broken migration partially created
-    the table, leaving the DB and migration history out of sync.
+    Uses SeparateDatabaseAndState to be fully idempotent:
+    - Drops the table if it exists (handles corrupt/partial previous runs)
+    - Recreates it cleanly with all required columns
+    - Updates Django ORM state
     """
 
     dependencies = [
@@ -24,7 +20,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.SeparateDatabaseAndState(
-            # ── What Django's migration STATE should know ──────────────────
             state_operations=[
                 migrations.CreateModel(
                     name='Notification',
@@ -53,11 +48,15 @@ class Migration(migrations.Migration):
                     },
                 ),
             ],
-            # ── What actually runs against the database ────────────────────
             database_operations=[
+                # Drop the broken table if it exists, then recreate cleanly
+                migrations.RunSQL(
+                    sql="DROP TABLE IF EXISTS api_notification CASCADE;",
+                    reverse_sql="DROP TABLE IF EXISTS api_notification CASCADE;",
+                ),
                 migrations.RunSQL(
                     sql="""
-                        CREATE TABLE IF NOT EXISTS api_notification (
+                        CREATE TABLE api_notification (
                             id          BIGSERIAL PRIMARY KEY,
                             message     TEXT NOT NULL,
                             notif_type  VARCHAR(20) NOT NULL DEFAULT 'system',
@@ -69,7 +68,7 @@ class Migration(migrations.Migration):
                                 DEFERRABLE INITIALLY DEFERRED
                         );
                     """,
-                    reverse_sql="DROP TABLE IF EXISTS api_notification;",
+                    reverse_sql="DROP TABLE IF EXISTS api_notification CASCADE;",
                 ),
             ],
         ),
