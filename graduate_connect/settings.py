@@ -57,7 +57,7 @@ MIDDLEWARE = [
 
 _cors_origins = os.environ.get(
     'CORS_ALLOWED_ORIGINS',
-    'http://localhost:5173,http://127.0.0.1:5173,https://graduate-connect-frontend.onrender.com'
+    'http://localhost:5173,http://127.0.0.1:5173,https://graduate-connect-frontend.onrender.com,https://graduate-connect-fronten.onrender.com'
 )
 CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(',') if o.strip()]
 CORS_ALLOW_CREDENTIALS = True
