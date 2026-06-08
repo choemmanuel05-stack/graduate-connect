@@ -36,6 +36,10 @@ const SKILL_CATEGORIES: Record<string, string[]> = {
   'Soft Skills': ['Communication','Leadership','Teamwork','Problem Solving','Critical Thinking','Adaptability','Time Management','Emotional Intelligence','Conflict Resolution','Public Speaking','Creativity','Agile'],
 };
 const LANG_LEVELS = ['Native','Fluent','Advanced','Intermediate','Basic'];
+const DEGREES = ['Bachelor of Science (BSc)','Bachelor of Arts (BA)','Bachelor of Engineering (BEng)','Bachelor of Technology (BTech)','Master of Science (MSc)','Master of Arts (MA)','Master of Business Administration (MBA)','Master of Engineering (MEng)','Doctor of Philosophy (PhD)','Doctor of Medicine (MD)','Associate Degree','Higher National Diploma (HND)','Professional Certificate','Diploma'];
+const FIELDS_OF_STUDY = ['Computer Science','Software Engineering','Information Technology','Electrical Engineering','Mechanical Engineering','Civil Engineering','Business Administration','Accounting & Finance','Economics','Marketing','Human Resource Management','Law','Medicine','Nursing','Pharmacy','Agriculture','Environmental Science','Architecture','Graphic Design','Journalism & Communication','Mathematics','Statistics','Physics','Chemistry','Biology','Sociology','Psychology','Political Science','Education','Linguistics'];
+const JOB_TITLES = ['Software Engineer','Frontend Developer','Backend Developer','Full Stack Developer','Mobile Developer','DevOps Engineer','Data Scientist','Data Analyst','Machine Learning Engineer','UI/UX Designer','Product Manager','Project Manager','Business Analyst','Financial Analyst','Accountant','Marketing Manager','Sales Representative','Human Resources Officer','Civil Engineer','Electrical Engineer','Mechanical Engineer','Network Engineer','Cybersecurity Analyst','Research Assistant','Teacher','Nurse','Pharmacist','Lawyer','Journalist','Graphic Designer','Content Writer','Customer Service Officer'];
+const PROFESSIONAL_TITLES = ['Software Engineer','Data Scientist','Business Analyst','Project Manager','Financial Analyst','Marketing Specialist','Human Resources Professional','Civil Engineer','Electrical Engineer','Mechanical Engineer','Healthcare Professional','Legal Professional','Educator','Researcher','Designer','Journalist','Entrepreneur','Consultant','Administrator','Sales Professional'];
 
 /* ── Helper sub-components ──────────────────────────────────────────────── */
 const Label:React.FC<{children:React.ReactNode}> = ({children}) => (
@@ -53,6 +57,21 @@ const TextArea:React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>&{label
   <div>
     {label && <Label>{label}</Label>}
     <textarea {...props} style={{width:'100%',padding:'0.55rem 0.75rem',background:'#263348',border:'1.5px solid rgba(148,163,184,0.25)',borderRadius:8,fontSize:'0.85rem',color:'#F1F5F9',fontFamily:'inherit',outline:'none',resize:'vertical',...props.style}}
+      onFocus={e=>{e.target.style.borderColor='#60A5FA';}}
+      onBlur={e=>{e.target.style.borderColor='rgba(148,163,184,0.25)';}}/>
+  </div>
+);
+// Combo: dropdown suggestions + free-type input
+const SelectField:React.FC<{label:string;value:string;onChange:(v:string)=>void;options:string[];placeholder?:string}> = ({label,value,onChange,options,placeholder}) => (
+  <div>
+    <Label>{label}</Label>
+    <select value={options.includes(value)?value:''} onChange={e=>{ if(e.target.value) onChange(e.target.value); }}
+      style={{width:'100%',padding:'0.55rem 0.75rem',background:'#263348',border:'1.5px solid rgba(148,163,184,0.25)',borderRadius:'8px 8px 0 0',fontSize:'0.85rem',color:value&&options.includes(value)?'#F1F5F9':'#64748B',outline:'none',marginBottom:0}}>
+      <option value="">— Select or type below —</option>
+      {options.map(o=><option key={o} value={o}>{o}</option>)}
+    </select>
+    <input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder||'Or type your own…'}
+      style={{width:'100%',padding:'0.45rem 0.75rem',background:'#1E293B',border:'1.5px solid rgba(148,163,184,0.25)',borderTop:'none',borderRadius:'0 0 8px 8px',fontSize:'0.82rem',color:'#F1F5F9',fontFamily:'inherit',outline:'none'}}
       onFocus={e=>{e.target.style.borderColor='#60A5FA';}}
       onBlur={e=>{e.target.style.borderColor='rgba(148,163,184,0.25)';}}/>
   </div>
@@ -311,7 +330,7 @@ const CVBuilder:React.FC = () => {
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.75rem'}}>
             <Field label="Full Name *" value={cv.fullName} onChange={e=>setCvField('fullName',e.target.value)} placeholder="Emmanuel Cho Tepi"/>
-            <Field label="Professional Title" value={cv.title} onChange={e=>setCvField('title',e.target.value)} placeholder="Software Engineer"/>
+            <SelectField label="Professional Title" value={cv.title} onChange={v=>setCvField('title',v)} options={PROFESSIONAL_TITLES} placeholder="e.g. Software Engineer"/>
             <Field label="Email *" type="email" value={cv.email} onChange={e=>setCvField('email',e.target.value)} placeholder="you@example.com"/>
             <Field label="Phone" value={cv.phone} onChange={e=>setCvField('phone',e.target.value)} placeholder="+237 6XX XXX XXX"/>
             <Field label="Location" value={cv.location} onChange={e=>setCvField('location',e.target.value)} placeholder="Yaoundé, Cameroon"/>
@@ -387,7 +406,7 @@ const CVBuilder:React.FC = () => {
                 {work.length>1 && <button onClick={()=>removeWork(e.id)} style={{background:'none',border:'none',cursor:'pointer',color:'#EF4444',display:'flex',alignItems:'center'}}><Trash2 size={14}/></button>}
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.625rem'}}>
-                <Field label="Job Title" value={e.role} onChange={ev=>setWorkField(e.id,'role',ev.target.value)} placeholder="Software Engineer"/>
+                <SelectField label="Job Title" value={e.role} onChange={v=>setWorkField(e.id,'role',v)} options={JOB_TITLES} placeholder="e.g. Software Engineer"/>
                 <Field label="Company" value={e.company} onChange={ev=>setWorkField(e.id,'company',ev.target.value)} placeholder="TechCorp"/>
                 <Field label="Location" value={e.location} onChange={ev=>setWorkField(e.id,'location',ev.target.value)} placeholder="Yaoundé"/>
                 <div/>
@@ -420,8 +439,8 @@ const CVBuilder:React.FC = () => {
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.625rem'}}>
                 <Field label="Institution" value={e.institution} onChange={ev=>setEduField(e.id,'institution',ev.target.value)} placeholder="University of Yaoundé I" style={{gridColumn:'1/-1'}}/>
-                <Field label="Degree" value={e.degree} onChange={ev=>setEduField(e.id,'degree',ev.target.value)} placeholder="Bachelor"/>
-                <Field label="Field of Study" value={e.field} onChange={ev=>setEduField(e.id,'field',ev.target.value)} placeholder="Computer Science"/>
+                <SelectField label="Degree" value={e.degree} onChange={v=>setEduField(e.id,'degree',v)} options={DEGREES} placeholder="e.g. Bachelor of Science"/>
+                <SelectField label="Field of Study" value={e.field} onChange={v=>setEduField(e.id,'field',v)} options={FIELDS_OF_STUDY} placeholder="e.g. Computer Science"/>
                 <Field label="Start Year" type="number" value={e.start} onChange={ev=>setEduField(e.id,'start',ev.target.value)} placeholder="2020"/>
                 <Field label="End Year" type="number" value={e.end} onChange={ev=>setEduField(e.id,'end',ev.target.value)} placeholder="2024"/>
                 <Field label="GPA" value={e.gpa} onChange={ev=>setEduField(e.id,'gpa',ev.target.value)} placeholder="3.8"/>
@@ -462,7 +481,7 @@ const CVBuilder:React.FC = () => {
             </div>
             {langs.map(l=>(
               <div key={l.id} style={{display:'grid',gridTemplateColumns:'1fr 1fr auto',gap:'0.5rem',alignItems:'end',marginBottom:'0.5rem'}}>
-                <Field label="Language" value={l.name} onChange={e=>setLangField(l.id,'name',e.target.value)} placeholder="English"/>
+                <SelectField label="Language" value={l.name} onChange={v=>setLangField(l.id,'name',v)} options={['English','French','Spanish','Arabic','Portuguese','German','Chinese','Hausa','Swahili','Yoruba','Fulfulde','Ewondo','Bassa','Duala']} placeholder="e.g. English"/>
                 <div>
                   <Label>Proficiency</Label>
                   <select value={l.level} onChange={e=>setLangField(l.id,'level',e.target.value)} style={{width:'100%',padding:'0.55rem 0.75rem',background:'#263348',border:'1.5px solid rgba(148,163,184,0.25)',borderRadius:8,fontSize:'0.85rem',color:'#F1F5F9',outline:'none'}}>
