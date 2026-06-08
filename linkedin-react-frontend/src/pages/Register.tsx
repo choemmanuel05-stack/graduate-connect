@@ -158,6 +158,36 @@ const Register: React.FC = () => {
 
         <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
 
+          {/* Role selector */}
+          <div>
+            <label className="field-label">I am a</label>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              {[
+                { value: 'graduate', label: '🎓 Graduate', desc: 'Looking for jobs' },
+                { value: 'employer', label: '🏢 Employer', desc: 'Hiring graduates' },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setForm(p => ({ ...p, role: opt.value }))}
+                  style={{
+                    flex: 1, padding: '0.65rem 0.75rem', borderRadius: 'var(--r-md)',
+                    border: `2px solid ${form.role === opt.value ? 'var(--brand-light)' : 'var(--border-2)'}`,
+                    background: form.role === opt.value ? 'rgba(99,102,241,0.08)' : 'transparent',
+                    cursor: 'pointer', textAlign: 'center', transition: 'all 150ms',
+                  }}
+                >
+                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: form.role === opt.value ? 'var(--brand-light)' : 'var(--text-primary)' }}>
+                    {opt.label}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>
+                    {opt.desc}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* First Name */}
           <div>
             <label className="field-label">First Name</label>
