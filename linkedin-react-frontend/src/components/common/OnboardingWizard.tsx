@@ -73,7 +73,6 @@ export const OnboardingWizard: React.FC = () => {
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
-  const [savingRole, setSavingRole] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -95,18 +94,8 @@ export const OnboardingWizard: React.FC = () => {
 
   const handleRoleSelect = async (role: string) => {
     setSelectedRole(role);
-    setSavingRole(true);
-    try {
-      const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api';
-      const token = localStorage.getItem('accessToken');
-      await fetch(`${BASE_URL}/auth/update-role/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ role }),
-      });
-      await updateProfile({ role });
-    } catch { /* ignore */ }
-    setSavingRole(false);
+    // Update local state immediately
+    await updateProfile({ role });
     setStep(1);
   };
 
@@ -143,15 +132,14 @@ export const OnboardingWizard: React.FC = () => {
                 { role: 'graduate', icon: '🎓', title: 'I\'m a Graduate', desc: 'Looking for job opportunities' },
                 { role: 'employer', icon: '🏢', title: 'I\'m an Employer', desc: 'Hiring talented graduates' },
               ].map(opt => (
-                <button key={opt.role} onClick={() => handleRoleSelect(opt.role)} disabled={savingRole}
+                <button key={opt.role} onClick={() => handleRoleSelect(opt.role)}
                   style={{
                     flex: 1, padding: '1.25rem 0.75rem', borderRadius: 16, cursor: 'pointer',
                     border: `2px solid ${selectedRole === opt.role ? '#2563EB' : 'var(--border-2)'}`,
                     background: selectedRole === opt.role ? 'rgba(37,99,235,0.08)' : 'var(--surface-2)',
                     transition: 'all 150ms', textAlign: 'center',
-                    opacity: savingRole ? 0.6 : 1,
                   }}
-                  onMouseEnter={e => { if (!savingRole) (e.currentTarget as HTMLElement).style.borderColor = '#2563EB'; }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#2563EB'; }}
                   onMouseLeave={e => { if (selectedRole !== opt.role) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-2)'; }}
                 >
                   <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{opt.icon}</div>
