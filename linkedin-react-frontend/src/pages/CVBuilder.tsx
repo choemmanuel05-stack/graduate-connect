@@ -11,7 +11,7 @@ interface WorkExp { id:string; company:string; role:string; location:string; sta
 interface Education { id:string; institution:string; degree:string; field:string; start:string; end:string; gpa:string; honors:string; }
 interface Cert { id:string; name:string; issuer:string; date:string; }
 interface Lang { id:string; name:string; level:string; }
-interface CVData { fullName:string; title:string; email:string; phone:string; location:string; linkedin:string; github:string; summary:string; skills:string[]; photo:string; }
+interface CVData { fullName:string; title:string; email:string; phone:string; location:string; website:string; linkedin:string; github:string; summary:string; skills:string[]; photo:string; }
 type Template = 'classic'|'modern'|'minimal';
 
 const uid = () => Math.random().toString(36).slice(2,9);
