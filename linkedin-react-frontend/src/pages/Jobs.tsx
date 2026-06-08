@@ -121,7 +121,7 @@ const Jobs: React.FC = () => {
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input type="text" placeholder="Search job title, company, skills..."
             value={search} onChange={e => setSearch(e.target.value)}
-            className="input pl-10 bg-gray-50" />
+            className="input bg-gray-50" style={{ paddingLeft: '2.5rem' }} />
         </div>
         <select value={jobType} onChange={e => setJobType(e.target.value)}
           className="input sm:w-44 bg-gray-50">
