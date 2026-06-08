@@ -68,16 +68,17 @@ const employerSteps = [
 ];
 
 export const OnboardingWizard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [savingRole, setSavingRole] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     const done = localStorage.getItem(`${STORAGE_KEY}_${user.id}`);
     if (!done) {
-      // Small delay so the page loads first
       setTimeout(() => setVisible(true), 800);
     }
   }, [user]);
@@ -92,11 +93,86 @@ export const OnboardingWizard: React.FC = () => {
     navigate(path);
   };
 
+  const handleRoleSelect = async (role: string) => {
+    setSelectedRole(role);
+    setSavingRole(true);
+    try {
+      const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api';
+      const token = localStorage.getItem('accessToken');
+      await fetch(`${BASE_URL}/auth/update-role/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ role }),
+      });
+      await updateProfile({ role });
+    } catch { /* ignore */ }
+    setSavingRole(false);
+    setStep(1);
+  };
+
   if (!visible || !user) return null;
 
-  const flow = user.role === 'employer' ? employerSteps : steps;
-  const current = flow[step];
-  const isLast = step === flow.length - 1;
+  // Role selection step
+  if (step === 0) {
+    return (
+      <>
+        <div onClick={dismiss} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 2000 }} />
+        <div style={{
+          position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+          width: '100%', maxWidth: 480, zIndex: 2001,
+          background: 'var(--surface)', border: '1px solid var(--border-2)',
+          borderRadius: 24, boxShadow: 'var(--s4)', overflow: 'hidden',
+          animation: 'popIn 0.25s cubic-bezier(0.34,1.56,0.64,1)',
+        }}>
+          <div style={{ height: 3, background: 'var(--border)' }}>
+            <div style={{ height: '100%', width: '20%', background: 'linear-gradient(90deg,#2563EB,#10B981)', borderRadius: 99 }} />
+          </div>
+          <button onClick={dismiss} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
+            <X size={18} />
+          </button>
+          <div style={{ padding: '2rem' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👋</div>
+            <h2 style={{ fontSize: '1.375rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 0.5rem', letterSpacing: '-0.02em' }}>
+              Welcome, {user.email?.split('@')[0]}!
+            </h2>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: 1.65 }}>
+              How will you be using Graduate-Connect?
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+              {[
+                { role: 'graduate', icon: '🎓', title: 'I\'m a Graduate', desc: 'Looking for job opportunities' },
+                { role: 'employer', icon: '🏢', title: 'I\'m an Employer', desc: 'Hiring talented graduates' },
+              ].map(opt => (
+                <button key={opt.role} onClick={() => handleRoleSelect(opt.role)} disabled={savingRole}
+                  style={{
+                    flex: 1, padding: '1.25rem 0.75rem', borderRadius: 16, cursor: 'pointer',
+                    border: `2px solid ${selectedRole === opt.role ? '#2563EB' : 'var(--border-2)'}`,
+                    background: selectedRole === opt.role ? 'rgba(37,99,235,0.08)' : 'var(--surface-2)',
+                    transition: 'all 150ms', textAlign: 'center',
+                    opacity: savingRole ? 0.6 : 1,
+                  }}
+                  onMouseEnter={e => { if (!savingRole) (e.currentTarget as HTMLElement).style.borderColor = '#2563EB'; }}
+                  onMouseLeave={e => { if (selectedRole !== opt.role) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-2)'; }}
+                >
+                  <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{opt.icon}</div>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{opt.title}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+            <p style={{ textAlign: 'center', fontSize: '0.72rem', color: '#64748B' }}>Step 1 — Choose your role</p>
+          </div>
+        </div>
+        <style>{`@keyframes popIn { from { opacity:0; transform:translate(-50%,-48%) scale(0.96); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }`}</style>
+      </>
+    );
+  }
+
+  const effectiveRole = selectedRole || user.role;
+  const flow = effectiveRole === 'employer' ? employerSteps : steps;
+  const flowStep = step - 1; // offset by 1 for role step
+  const current = flow[Math.min(flowStep, flow.length - 1)];
+  const isLast = flowStep === flow.length - 1;
 
   return (
     <>
@@ -114,7 +190,7 @@ export const OnboardingWizard: React.FC = () => {
       }}>
         {/* Progress bar */}
         <div style={{ height: 3, background: 'var(--border)' }}>
-          <div style={{ height: '100%', width: `${((step + 1) / flow.length) * 100}%`, background: 'linear-gradient(90deg,#2563EB,#10B981)', transition: 'width 400ms ease', borderRadius: 99 }} />
+          <div style={{ height: '100%', width: `${((flowStep + 1) / flow.length) * 100}%`, background: 'linear-gradient(90deg,#2563EB,#10B981)', transition: 'width 400ms ease', borderRadius: 99 }} />
         </div>
 
         {/* Close */}
@@ -126,7 +202,7 @@ export const OnboardingWizard: React.FC = () => {
           {/* Step indicator */}
           <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '1.5rem' }}>
             {flow.map((_, i) => (
-              <div key={i} style={{ height: 4, flex: 1, borderRadius: 99, background: i <= step ? '#2563EB' : 'var(--border)', transition: 'background 300ms' }} />
+              <div key={i} style={{ height: 4, flex: 1, borderRadius: 99, background: i <= flowStep ? '#2563EB' : 'var(--border)', transition: 'background 300ms' }} />
             ))}
           </div>
 
@@ -153,7 +229,7 @@ export const OnboardingWizard: React.FC = () => {
 
           {/* Step count */}
           <p style={{ textAlign: 'center', fontSize: '0.72rem', color: '#64748B', marginTop: '1rem' }}>
-            Step {step + 1} of {flow.length}
+            Step {flowStep + 1} of {flow.length}
           </p>
         </div>
       </div>
