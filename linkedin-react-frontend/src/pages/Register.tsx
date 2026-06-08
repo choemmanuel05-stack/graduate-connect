@@ -36,8 +36,14 @@ const Register: React.FC = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [googleToast, setGoogleToast] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  const handleGoogleClick = () => {
+    setGoogleToast(true);
+    setTimeout(() => setGoogleToast(false), 3000);
+  };
 
   const setField = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(p => ({ ...p, [k]: e.target.value }));
@@ -108,6 +114,20 @@ const Register: React.FC = () => {
   return (
     <div className="auth-bg" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
       <div className="auth-card fade-up" style={{ maxWidth: '460px' }}>
+
+        {/* Coming Soon toast */}
+        {googleToast && (
+          <div style={{
+            position: 'fixed', top: '1.25rem', left: '50%', transform: 'translateX(-50%)',
+            background: '#1E293B', border: '1px solid rgba(148,163,184,0.3)',
+            borderRadius: '10px', padding: '0.75rem 1.25rem',
+            color: '#CBD5E1', fontSize: '0.875rem', fontWeight: 600,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.4)', zIndex: 9999,
+            display: 'flex', alignItems: 'center', gap: '0.5rem',
+          }}>
+            🚧 Google Sign-In is coming soon!
+          </div>
+        )}
 
         {/* ── Brand header ── */}
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
@@ -290,8 +310,9 @@ const Register: React.FC = () => {
           {/* Google */}
           <button
             type="button"
+            onClick={handleGoogleClick}
             className="btn btn-secondary"
-            style={{ width: '100%', padding: '0.75rem', fontSize: '0.9rem', borderRadius: 'var(--r-pill)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem' }}
+            style={{ width: '100%', padding: '0.75rem', fontSize: '0.9rem', borderRadius: 'var(--r-pill)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', opacity: 0.7, cursor: 'pointer' }}
           >
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -300,6 +321,7 @@ const Register: React.FC = () => {
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
             Continue with Google
+            <span style={{ fontSize: '0.7rem', background: 'rgba(148,163,184,0.2)', padding: '0.15rem 0.5rem', borderRadius: '99px', marginLeft: '0.25rem' }}>Coming Soon</span>
           </button>
         </form>
 
